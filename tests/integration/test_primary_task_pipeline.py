@@ -56,8 +56,18 @@ def _write_bank(root: Path, split: str) -> None:
     ("task_name", "model_name", "expected_mapping"),
     [
         ("binary", "B2", {"elliptical": 0, "spiral": 1}),
-        ("binary", "QF", {"elliptical": 0, "spiral": 1}),
-        ("three_class", "Q", {"elliptical": 0, "merger": 1, "spiral": 2}),
+        pytest.param(
+            "binary",
+            "QF",
+            {"elliptical": 0, "spiral": 1},
+            marks=pytest.mark.quantum,
+        ),
+        pytest.param(
+            "three_class",
+            "Q",
+            {"elliptical": 0, "merger": 1, "spiral": 2},
+            marks=pytest.mark.quantum,
+        ),
     ],
 )
 def test_primary_cli_pipeline_writes_dynamic_complete_artifacts(

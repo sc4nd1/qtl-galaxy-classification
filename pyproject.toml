@@ -43,6 +43,7 @@ dependencies = [
   "torchvision>=0.19,<1",
   "matplotlib>=3.9,<4",
   "seaborn>=0.13,<1",
+  "pennylane==0.42.3",
 ]
 
 [project.urls]
@@ -58,6 +59,7 @@ dev = [
   "pytest-cov>=5,<8",
   "ruff>=0.9,<1",
   "nbformat>=5.10,<6",
+  "pennylane==0.42.3",
 ]
 
 [tool.setuptools.packages.find]

@@ -1,3 +1,4 @@
+import pytest
 import torch
 
 from tesi_qml.models.classical import CapacityMatchedHead
@@ -32,6 +33,7 @@ def test_paired_initialization_is_reproducible_without_global_rng_order() -> Non
     torch.testing.assert_close(first.pre_weight, second.pre_weight, rtol=0, atol=0)
 
 
+@pytest.mark.quantum
 def test_paired_initialization_applies_exact_shared_layers_to_b2_and_q() -> None:
     """Catches B2 and Q starting from different projection or head parameters."""
     from tesi_qml.models.pennylane_qnn import PennylaneAngleQNN
