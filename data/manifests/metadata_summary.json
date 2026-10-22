@@ -1,0 +1,14 @@
+{
+  "class_counts": {
+    "elliptical": 22163,
+    "merger": 1877,
+    "spiral": 41789
+  },
+  "clean_rows": 65829,
+  "exact_duplicates_removed": 5,
+  "input_rows": 65906,
+  "rejected_rows": 72,
+  "rejection_counts": {
+    "duplicate_conflict": 72
+  }
+}

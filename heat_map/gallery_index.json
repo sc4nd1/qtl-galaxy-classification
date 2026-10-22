@@ -1,0 +1,26 @@
+[
+  {
+    "task": "binary",
+    "subset": "full",
+    "qubits": 4,
+    "seed": 7,
+    "audit": "outputs/binary_full_q4_seed7_20260907T063414187011Z/audit.json",
+    "examples": 3
+  },
+  {
+    "task": "three_class",
+    "subset": "full",
+    "qubits": 4,
+    "seed": 7,
+    "audit": "outputs/three_class_full_q4_seed7_20260907T063717138404Z/audit.json",
+    "examples": 4
+  },
+  {
+    "task": "three_class",
+    "subset": "full",
+    "qubits": 8,
+    "seed": 7,
+    "audit": "outputs/three_class_full_q8_seed7_20260907T063322434764Z/audit.json",
+    "examples": 4
+  }
+]

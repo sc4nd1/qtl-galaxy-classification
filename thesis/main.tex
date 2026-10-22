@@ -1,0 +1,185 @@
+% tipo di documento
+\documentclass[a4paper, twoside, openright]{report}
+% codifica caratteri
+\usepackage[utf8]{inputenc}
+% encoding del testo
+\usepackage[T1]{fontenc}
+% dimensione dei margini
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=3cm,right=3cm]{geometry}
+% dimensione del font
+\usepackage[fontsize=12pt]{scrextend}
+% lingua del testo
+\usepackage[english,italian]{babel}
+% lingua per la bibliografia
+\usepackage[fixlanguage]{babelbib}
+% package per generare testo fittizio. Potrebbe essere
+% utile nel controllare quanto un capitolo potrebbe essere
+% grande e quindi quanto occupa nella pagina
+\usepackage{lipsum}
+% per ruotare le immagini
+\usepackage{rotating}
+% per modificare l'header delle pagine 
+\usepackage{fancyhdr}
+% per allineare in modo giustificato
+\usepackage{ragged2e}
+\justifying
+% uso delle immagini
+\usepackage{graphicx}
+\usepackage{float}
+% uso dei colori
+\usepackage[dvipsnames, table]{xcolor}         
+% uso dei listing per il codice
+\usepackage{listings}          
+% per inserire gli hyperlinks tra i vari elementi del testo 
+\usepackage[colorlinks=true, allcolors=black]{hyperref}    
+% diversi tipi di sottolineature
+\usepackage[normalem]{ulem}
+% package e comando per creare pagine vuote
+\usepackage{afterpage}
+\newcommand\blankpage{%
+    \null
+    \thispagestyle{empty}%
+    \addtocounter{page}{-1}%
+    \newpage
+}
+    
+% package per creare comandi personalizzati
+\usepackage{xpatch}
+% package helper per le liste puntate
+\usepackage{enumitem}
+% package per l'utilizzo dei colori
+% package per l'highlighting del codice
+\usepackage{minted}
+% package per gestire le caption
+\usepackage{caption}
+\usepackage{subcaption}
+% per gestire tabelle su più pagine
+\usepackage{longtable}
+% per combinare le righe di una tabella
+\usepackage{multirow}
+% per creare i tree di directory
+\usepackage{dirtree}
+
+% per le icone a fianco dei titoli di sezione
+\usepackage{etoolbox}
+\newcommand{\icon}[1]{\includegraphics[height=12pt]{#1}}
+\robustify{\icon}
+
+% -----------------------------------------------------------------
+\usepackage{todonotes}
+\usepackage[normalem]{ulem}
+\newcommand{\LP}[2]{{\color{gray}{\sout{#1}}\color{red}{#2}}\marginpar{\scalebox{1}{$\color{red}LP$}}\color{black}}
+\newcommand{\LPx}[2]{\color{gray}\ #1\ \color{red}\  #2 \color{black}}
+\newcommand{\LPtodo}[1]{\todo[color=white,linecolor=red,size=\tiny]{{\color{red}{LP: #1}}}}
+% -----------------------------------------------------------------
+
+
+% Modifica lo stile dell'header
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\rightmark}
+\rhead{\textbf{\thepage}}
+\fancyfoot{}
+\setlength{\headheight}{15pt}
+
+% Rimuove il numero di pagina all'inizio dei capitoli
+\fancypagestyle{plain}{
+  \fancyfoot{}
+  \fancyhead{}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% comandi per cambiare temporaneamente la lingua
+% abstract in inglese, al fine di cambiarne il titolo
+\xpretocmd{\abstract}{\selectlanguage{english}}{}{} 
+\xapptocmd{\endabstract}{\selectlanguage{italian}}{}{}
+
+% formattazione e highlight del codice
+\usemintedstyle{manni}
+\setminted[typescript]{
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\ttfamily\footnotesize,
+    linenos
+}
+% Stesso stile del template, applicato ai linguaggi della tesi.
+\setminted[python]{
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\ttfamily\footnotesize,
+    linenos,
+    breaklines
+}
+\setminted[sql]{
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\ttfamily\footnotesize,
+    linenos,
+    breaklines
+}
+
+% Le tabelle della tesi sono richiamate per numero nel testo.
+\captionsetup[table]{labelformat=default}
+
+% environment per impostare il codice in piu' pagine
+\newenvironment{code}{\captionsetup{type=listing}}{}
+
+\usepackage{amssymb}
+% Integrazioni necessarie ai contenuti, senza importare il vecchio preambolo.
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{booktabs,tabularx,array}
+\input{table_style}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\usepackage[italian,noabbrev]{cleveref}
+\crefname{listing}{listato}{listati}
+\Crefname{listing}{Listato}{Listati}
+\graphicspath{{images/}{figures/dataset/}{figures/models/}{figures/results/}}
+\setlength{\emergencystretch}{2em}
+\numberwithin{equation}{chapter}
+% Indice sintetico; le sottosezioni rimangono nel testo.
+\setcounter{tocdepth}{1}
+   \theoremstyle{plain}% default
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem*{cor}{Corollary}
+\newtheorem*{KL}{Klein’s Lemma}
+  \theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+\newtheorem{conj}{Conjecture}[section]
+\newtheorem{exmp}{Example}[section]
+\newtheorem{exercise}{Exercise}[section]
+  \theoremstyle{remark}
+\newtheorem*{rem}{Remark}
+\newtheorem*{note}{Note}
+\newtheorem{case}{Case}
+% -----------------------------------------------------------------
+\begin{document}
+
+\include{contents/TitlePage}
+% Citazione personale facoltativa: attivare dopo averla compilata.
+% \include{contents/CoolQuote}
+\include{contents/Abstract}
+\include{contents/ResponsabilityDeclaration}
+
+\tableofcontents
+
+\include{chapters/01_introduzione}
+\include{chapters/02_fondamenti}
+\include{chapters/03_dataset_protocollo}
+\include{chapters/04_modelli_disegno}
+\include{chapters/05_risultati}
+\include{chapters/06_discussione}
+\include{chapters/07_conclusioni}
+\appendix
+\include{chapters/appendici}
+
+\bibliographystyle{plain}
+\bibliography{Bibliography}
+% Ringraziamenti facoltativi: attivare dopo averli compilati.
+% \include{contents/Thanks}
+
+\end{document}
+% -----------------------------------------------------------------

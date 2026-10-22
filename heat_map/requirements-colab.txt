@@ -1,0 +1,10 @@
+# Installed ONLY in heat_map/.venv; torch/torchvision from the CPU wheel index.
+numpy==2.2.6
+pandas==2.3.3
+scipy==1.15.3
+pennylane==0.42.3
+autoray==0.7.2
+matplotlib==3.10.6
+Pillow==11.3.0
+pyarrow==21.0.0
+# JAX is not needed for the Torch/backprop QNode. Do not install CUDA JAX plugins.

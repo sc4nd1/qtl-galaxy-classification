@@ -1,0 +1,19 @@
+# Ambiente di riferimento: CPython 3.11, Linux x86_64, CUDA compatibile con PyTorch 2.8.
+numpy==2.2.6
+pandas==2.3.3
+pyarrow==20.0.0
+Pillow==11.3.0
+PyYAML==6.0.3
+requests==2.32.5
+scikit-learn==1.7.2
+scipy==1.15.3
+torch==2.8.0
+torchvision==0.23.0
+matplotlib==3.10.9
+seaborn==0.13.2
+pennylane==0.42.3
+jax==0.6.2
+jaxlib==0.6.2
+pytest==9.1.1
+ruff==0.16.1
+nbformat==5.10.4

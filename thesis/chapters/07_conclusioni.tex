@@ -1,0 +1,140 @@
+\chapter{Conclusioni e sviluppi futuri}
+\label{chap:conclusioni}
+
+\section{Sintesi del lavoro}
+
+In questo lavoro ho confrontato teste classiche e ibride
+classico-quantistiche per la classificazione morfologica delle galassie.
+Il dataset bilanciato di \(5\,628\) immagini ha permesso di definire due task e di
+esaminare il ruolo della disponibilità dei dati attraverso subset
+stratificati del training. La matrice finale comprende \(640\) run,
+organizzate su dieci ripetizioni di holdout stratificato.
+
+La rappresentazione condivisa di ResNet18 ha consentito di
+concentrare l'analisi sulle teste. Le baseline B0 e B1 hanno
+fornito riferimenti classici; B2 ha controllato la compressione
+a quattro o otto componenti; Q e QF hanno distinto l'inserimento
+del circuito dall'addestramento dei suoi parametri. Prestazioni,
+incertezza, errori per classe e tempi sono stati esaminati
+congiuntamente.
+
+Sul Full binario le architetture raggiungono Macro-F1 prossime
+a \(0{,}96\), senza evidenza di un vantaggio di Q rispetto a B2.
+Sul Full a tre classi Q presenta invece una perdita media di
+\(0{,}73\) pp a quattro qubit e \(1{,}67\) pp a otto,
+significativa secondo i test e la correzione adottati. I regimi
+con pochi dati non mostrano il beneficio quantistico ipotizzato;
+l'analisi merger rende visibile una parte importante delle
+difficoltà, soprattutto a otto qubit.
+
+Il contributo dell'addestramento circuitale risulta contenuto
+sul Full e dipendente dal regime nei subset. L'aumento dei qubit
+non determina miglioramenti sistematici. I tempi dei modelli
+quantistici simulati sono invece sensibilmente maggiori di quelli
+del controllo classico.
+Le conclusioni restano circoscritte a dataset, rappresentazione,
+circuiti e protocollo considerati.
+
+\section{Contributi e valore del confronto}
+
+Il risultato del lavoro è un confronto riproducibile su dati
+astronomici. Immagini, partizioni, configurazioni e predizioni
+rimangono collegate negli artefatti, consentendo di risalire
+dalle metriche aggregate alle singole esecuzioni.
+
+La combinazione di controlli classici, circuito congelato e
+regimi di dati rende il risultato più informativo di una sola
+misura di accuratezza. Permette di distinguere ciò che il modello
+ibrido riesce a fare da ciò che apporta rispetto alle alternative.
+Nelle condizioni esaminate, il circuito non offre un miglioramento
+predittivo che compensi il maggiore costo osservato.
+
+Il protocollo costituisce inoltre una base riutilizzabile per
+valutare modifiche successive. Nuove rappresentazioni o circuiti
+possono essere confrontati mantenendo criteri espliciti di
+appaiamento e una distinzione tra analisi confermative ed
+esplorative.
+
+\section{Sviluppi futuri}
+\label{sec:concl-futuro}
+
+\subsection{Validazione esterna e robustezza del protocollo}
+
+La priorità è verificare la generalizzazione su un campione
+indipendente, possibilmente con condizioni osservative o
+prevalenze diverse. Partizioni per regione di cielo o sistema
+fisico aiuterebbero a controllare correlazioni non eliminate
+dalla sola separazione degli identificativi. Analisi di
+sensibilità alle soglie di etichettatura potrebbero inoltre
+chiarire quanto il confronto dipenda dalla selezione di
+esempi più o meno ambigui.
+
+Sul piano statistico, ulteriori valutazioni dovrebbero
+considerare esplicitamente la dipendenza tra split e definire
+in anticipo famiglie di confronti e differenze di interesse
+pratico. Se l'obiettivo fosse dimostrare che due modelli
+hanno prestazioni sufficientemente vicine, servirebbe un
+protocollo di equivalenza o non inferiorità, non la sola
+assenza di significatività.
+
+\subsection{Rappresentazione e ottimizzazione}
+
+Una seconda direzione riguarda l'adeguatezza delle feature
+al dominio galattico. Backbone preaddestrati su immagini
+astronomiche o un fine-tuning controllato potrebbero cambiare
+la qualità della rappresentazione disponibile alle teste.
+Ogni modifica dovrebbe essere applicata anche ai controlli
+classici per non attribuire al circuito un beneficio dovuto
+all'estrattore.
+
+È inoltre utile confrontare strategie di ottimizzazione con
+budget di ricerca espliciti e comparabili, distinguendo
+numero di epoche, aggiornamenti e tempo disponibile. Questo
+permetterebbe di verificare se gli iperparametri condivisi
+abbiano favorito alcune teste e se una diversa ottimizzazione
+cambi il divario osservato.
+
+\subsection{Ablazioni circuitali e diagnostiche mirate}
+
+Le modifiche al circuito dovrebbero rispondere a ipotesi
+specifiche: cambiare profondità, collegamenti o encoding
+separatamente è più informativo che aumentare simultaneamente
+tutte le componenti. Il data re-uploading, non usato nel
+circuito principale, rappresenta una possibile estensione
+da confrontare con controlli classici adeguati.
+
+Per comprendere il ruolo dell'addestramento quantistico
+occorrerebbe registrare separatamente gradienti e variazioni
+dei soli parametri circuitali. Esperimenti con circuito
+senza entangling gate e analisi della sensibilità agli
+ingressi potrebbero verificare quale parte della trasformazione
+sia effettivamente utile. Si tratterebbe di nuovi esperimenti,
+non di spiegazioni già dimostrate dai risultati disponibili.
+
+\subsection{Costo e condizioni di esecuzione realistiche}
+
+Un benchmark su hardware costante, con misure end-to-end
+e separazione tra estrazione delle feature, training e
+inferenza, renderebbe più completa l'analisi dei costi.
+L'introduzione di shot finiti e rumore consentirebbe poi
+di studiare la sensibilità delle predizioni a condizioni
+più vicine all'esecuzione fisica.
+
+Un'eventuale sperimentazione su QPU richiederebbe di misurare
+anche preparazione, compilazione, numero di valutazioni e
+costi di accesso, evitando di trasferire direttamente i
+tempi del simulatore all'hardware quantistico. Il criterio
+resterebbe il beneficio ottenuto rispetto a risorse e
+prestazioni dei controlli classici.
+
+\section{Considerazione conclusiva}
+
+Gli esperimenti mostrano che piccoli circuiti quantistici possono
+essere integrati nella pipeline e raggiungere buone prestazioni,
+ma che questo non basta a renderli preferibili al controllo classico.
+Con le feature e le condizioni adottate, B2 offre un compromesso
+più favorevole tra prestazioni e tempo. Il risultato riguarda le
+architetture valutate e non esclude benefici in altri contesti.
+Gli sviluppi successivi dovranno verificare quali modifiche alla
+rappresentazione, al circuito o all'ottimizzazione cambino questo
+confronto, mantenendo controlli e criteri di valutazione espliciti.

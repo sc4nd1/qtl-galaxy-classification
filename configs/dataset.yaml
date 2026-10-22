@@ -1,0 +1,42 @@
+project_seed: 42
+source_csv: data/source/GalaxyCandidates.csv
+candidate_manifest: data/manifests/candidates.parquet
+download_manifest: data/manifests/downloads.parquet
+final_manifest: data/manifests/final.parquet
+image_dir: data/images
+split_dir: data/splits
+classes:
+  elliptical: 0
+  merger: 1
+  spiral: 2
+thresholds:
+  elliptical: 0.8
+  spiral: 0.8
+  merger: 0.4
+redshift:
+  minimum: 0.005
+  maximum: 0.1
+download:
+  oversample_factor: 1.25
+  width: 320
+  height: 320
+  scale: 0.396
+  timeout_seconds: 20
+  max_retries: 5
+  requests_per_second: 4
+splits:
+  n_folds: 4
+  repeat_seeds: [42, 314, 2718, 1618, 2026, 7, 73, 137, 1729, 4096]
+  primary_iterations: [1]
+tasks:
+  binary:
+    class_names: [elliptical, spiral]
+    class_to_index:
+      elliptical: 0
+      spiral: 1
+  three_class:
+    class_names: [elliptical, merger, spiral]
+    class_to_index:
+      elliptical: 0
+      merger: 1
+      spiral: 2

@@ -1,0 +1,15 @@
+% Stile locale alle tabelle; usa solo pacchetti gia presenti nel template.
+\definecolor{ThesisTableHeader}{gray}{0.94}
+\definecolor{ThesisTableRule}{gray}{0.35}
+\newcommand{\thesisTableSetup}{%
+  \renewcommand{\arraystretch}{1.20}%
+  \setlength{\tabcolsep}{5pt}%
+  \setlength{\heavyrulewidth}{0.7pt}%
+  \setlength{\lightrulewidth}{0.35pt}%
+  \arrayrulecolor{ThesisTableRule}%
+}
+\AtBeginEnvironment{table}{\thesisTableSetup}
+\AtBeginEnvironment{table*}{\thesisTableSetup}
+\newcommand{\tablehead}[1]{\textbf{\boldmath #1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\captionsetup[table]{font=small,labelfont=bf,skip=8pt}

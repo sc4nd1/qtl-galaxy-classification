@@ -1,0 +1,37 @@
+% Proposta da revisionare, NON inclusa automaticamente nei capitoli.
+% Richiede la voce selvaraju2017gradcam di heat_map/references.bib.
+\subsection{Visualizzazione qualitativa dei contributi alla classificazione}
+
+Per affiancare all'analisi quantitativa una lettura spaziale delle
+predizioni viene utilizzato Grad-CAM \cite{selvaraju2017gradcam}.
+Il metodo costruisce una mappa di contributi positivi al logit
+di una classe, utilizzando le attivazioni dell'ultimo blocco
+convoluzionale e il gradiente del punteggio rispetto a esse.
+Indicando con \(A^k_{ij}\) l'attivazione spaziale del canale \(k\)
+e con \(z_c\) il logit della classe \(c\), si calcolano
+\[
+ \alpha_k^c=\frac{1}{HW}\sum_{i,j}
+       \frac{\partial z_c}{\partial A^k_{ij}},
+ \qquad
+ L^c_{ij}=\operatorname{ReLU}\left(\sum_k\alpha_k^c A^k_{ij}\right).
+\]
+La rappresentazione utilizzata è l'output di \texttt{layer4}
+della ResNet18 congelata, con 512 canali e risoluzione \(7\times7\).
+La mappa viene interpolata sul crop di test \(224\times224\);
+l'interpolazione non aumenta la risoluzione informativa della mappa.
+
+B2, Q e QF ricevono la stessa rappresentazione dell'immagine.
+Il gradiente viene calcolato attraverso la testa finale del singolo
+modello, includendo il circuito in Q e QF. Per rendere il confronto
+coerente, tutti i pannelli di una stessa immagine spiegano il logit
+della classe vera, anche quando una predizione è errata.
+Non vengono aggiornati pesi né ricalcolati split di training.
+
+Prima della visualizzazione vengono verificati gli hash delle
+immagini, l'identità dei checkpoint e l'accordo tra le predizioni
+ricostruite e quelle archiviate. Gli esempi ordinari sono selezionati
+con una regola deterministica per classe; i casi aggiuntivi scelti
+per disaccordo tra modelli sono identificati separatamente.
+Le mappe hanno finalità illustrativa: non sono attention map
+native, non costituiscono una prova causale e non consentono
+di dedurre una superiorità generale dell'architettura da pochi esempi.

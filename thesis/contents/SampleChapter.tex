@@ -1,0 +1,180 @@
+\chapter{Interpretazioni limitate}
+
+\section{Operazione opposto}
+    Definiamo un'operazione sugli insiemi che risulterà utile successivamente. 
+    \begin{defn}
+        Sia $I$ un insieme interpretazione, l'operazione "opposto" $I^{opp}$ è definita come la differenza tra l'insieme dei numeri Naturali meno l'insieme $I$:\[I^{opp} = \mathbb{N} - I.\]
+    \end{defn}
+        
+%sostituisci N con simbolo naturali
+\section{Unione tra Interpretazioni}
+
+   \begin{thm}
+       Prendiamo in considerazione due interpretazioni $I_1$ e $I_2$ e due formule logiche $A_1$ e $A_2$ tali che 
+    \[I_1 \models A_1, \qquad I_2 \models A_2.\]
+    Se l'intersezione 
+    \[I_1 \cap I_2^{opp} = \emptyset\] 
+    possiamo affermare che l'unione \[I_1 \cup I_2 \models A_1 \land A_2\]
+   \end{thm}
+   \begin{proof}
+            Per dimostrare la tesi occorrono tre passaggi.
+        \begin{enumerate}
+            \item \[I_1 \cup I_2 \models A_1\]
+            \item \[I_1 \cup I_2 \models A_2\]
+            \item \[I_1 \cup I_2 \models A_1 \land A_2\]
+        \end{enumerate}
+        \begin{enumerate}
+            \item l'affermazione $I_1 \cap I_2^{opp} = \emptyset$ implica che non vi siano atomi in conflitto tra $I_1$ e $I_2$ perciò, se $I_1 \models A_1$ possiamo affermare 
+               \[I_1 \cup I_2 \models A_1\]
+            \item per affermare lo stesso per $A_2$ è necessario dimostrare
+            \[I_1^{opp} \cap I_2 = \emptyset\] 
+            essendo $I_1^{opp}$ e $I_2$ i complementari rispettivamente di $I_1$ e $I_2^{opp}$, per definizione di opp, l'intersezione $I_1^{opp} \cap I_2$ risulta contenere gli stessi atomi ma complementari rispetto a $I_1 \cap I_2^{opp}$\\
+            sapendo la loro intersezione essere vuota questo implica che a sua volta \[I_1^{opp} \cap I_2 = \emptyset\]
+            Utilizzando quindi 
+            \[I_1^{opp} \cap I_2 = \emptyset\]
+            e
+            \[I_2 \models A_2\]
+            possiamo affermare per gli stessi motivi del punto 1
+            \[I_1 \cup I_2 \models A_2\]
+            \item Infine per definizione di congiunzione logica se $I_1 \cup I_2 \models A_1$ e $I_1 \cup I_2 \models A_2$ allora \[I_1 \cup I_2 \models A_1 \land A_2\] 
+        \end{enumerate}
+   \end{proof}
+   
+       \begin{rem}
+         considerare $I_1$ e $I_2^{opp}$ oppure $I_1^{opp}$ e $I_2$ è indifferente.
+    \end{rem}
+
+\section{Considerazioni}
+    Se $I_1 \cap I_2^{opp} = \emptyset$ non si verifica, non è sicuro che $I_1 \cup I_2 \models A_1 \land A_2$ sia falso.\\
+    Per esempio considerando:\\
+    \[A_1 = 1 \label  and 3 \textnormal{ con } I_1 = \{1, 3\}\]\\
+    e 
+    \[A_2 = 1 \land 4 \textnormal{ con } I_2 = \{1, 4\}\]\\
+    Se controlliamo l'intersezione tra $I_1$ e $I_2^{opp}$ otteniamo $\{3\}$ un insieme non vuoto che quindi non rispetta la richiesta.
+    Eppure l'unione di $I_1$ e $I_2$ è $\{1, 3, 4\}$ e possiamo costatare che soddisfi $1 \land 3 \land 4$.\\
+    Il lemma affermato e dimostrato sopra è corretto, ma molto impreciso.
+    È possibile sia necessario considerare solo interpretazioni minimali per ottenere dei risultati più precisi e quindi stabilire cosa avviene se la condizione di intersezione vuota non è affermata.\\
+
+    Domande che mi sono posto (appunti non del testo finale)
+    Una coppia di interpretazioni limitate fa riferimento ad uno stesso (grande) sottoinsieme di $N$, vi sono quindi molte iterazioni possibili e l'obbiettivo è individuare quali soddisfino anche la richiesta di unione delle formule una volta applicata l'intersezione. Forse la richiesta di un'intersezione con opposto vuota non è necessaria poiché esclude molte possibilità, ad esempio se non corrispondono su un atomo non presente nelle formule questo non avrà alcun effetto. Ha quindi senso cercare di stabilire un metodo per trovare tali coppie di interpretazioni con queste caratteristiche? Se tanto ne escluderemmo la maggior parte nonostante non sia rilevante il motivo dell'esclusione.
+
+\chapter{Chapter Title}
+
+An introduction here (with a cite from bibliography, like this: \cite{greenwade93}).
+%  ----
+\section{Type of texts}
+\subsection{Normal text}
+\lipsum[1]
+
+\subsection{Normal text}
+\textbf{\lipsum[1]}
+
+\subsection{Italic text}
+\textit{\lipsum[1]}
+
+\subsection{Mono space text}
+\subsubsection{(usually I use this type of format to refer me to code)}
+\texttt{Here is some text. Pay attention to this type, because It can go 
+\\ out of bounds! Usually you solve it with a double back-slash, to 
+\\ go to the new line.}
+%  ----
+
+%  ----
+\section{Lists}
+\subsection{Unbulleted lists}
+\begin{itemize}
+    \item \lipsum[1]
+    \item \lipsum[1]
+    \item \lipsum[1]
+\end{itemize}
+
+\subsection{Bulleted lists}
+\begin{enumerate}
+    \item \lipsum[1]
+    \item \lipsum[1]
+    \item \lipsum[1]
+\end{enumerate}
+%  ----
+
+%  ----
+\section{Images}
+Random Duolingo Image example:
+\begin{figure}[H]
+\centering
+    \includegraphics[scale=0.1]{images/duolingo.png}
+    \caption{Caption example.}
+    \label{fig:duolingo}
+\end{figure}
+
+In the text, you reference an image in this way: \ref{fig:duolingo}.
+%  ----
+
+%  ----
+\section{Tables}
+Example of table that can even be split into several pages if it's too long:
+\begin{longtable}[H]{| l | l |}
+    \hline
+     \rowcolor[HTML]{F87C58}\textbf{Head 1} & \textbf{Head 2}\\
+    \hline
+    \endfirsthead
+    
+    \texttt{Text} & \texttt{Text}\\
+    \hline
+    \texttt{text} & \texttt{Text}\\
+    \hline
+    \texttt{Text} & \texttt{Text}\\
+    \hline
+    \texttt{text} & \texttt{Text}\\
+    \hline
+    \texttt{Text} & \texttt{Text}\\
+    \hline
+    \texttt{text} & \texttt{Text}\\
+    \hline
+    \texttt{Text} & \texttt{Text}\\
+    \hline
+    \texttt{text} & \texttt{Text}\\
+    \hline
+    \texttt{Text} & \texttt{Text}\\
+    \hline
+    \texttt{text} & \texttt{Text}\\
+    \hline
+    \texttt{Text} & \texttt{Text}\\
+    \hline
+    \texttt{text} & \texttt{Text}\\
+    \hline
+    \texttt{Text} & \texttt{Text}\\
+    \hline
+    \texttt{text} & \texttt{Text}\\
+    \hline
+    \texttt{Text} & \texttt{Text}\\
+    \hline
+    \texttt{text} & \texttt{Text}\\
+    \hline
+    \texttt{Text} & \texttt{Text}\\
+    \hline
+    \texttt{text} & \texttt{Text}\\
+    \hline
+    \texttt{Text} & \texttt{Text}\\
+    \hline
+    \texttt{text} & \texttt{Text}\\
+    \hline
+    \caption{Table caption.}
+\end{longtable}
+%  ----
+
+%  ----
+\section{Code}
+Finally, here we are with code! The following examples are with typescript and HTML with Angular syntax, colored using the \textbf{minted} package.
+
+\begin{code}
+    \inputminted{typescript}{listings/ts-example.ts}
+    \caption{Caption for the typescript example.}
+\end{code}
+\vspace{4mm}
+
+\begin{code}
+    \inputminted{ng2}{listings/html-example.html}
+    \caption{Caption for the HTML with Angular syntax example.}
+\end{code}
+\vspace{4mm}
+%  ----

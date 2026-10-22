@@ -1,0 +1,28 @@
+% Schema originale della struttura implementata: nessuna figura di articoli copiata.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  block/.style={draw=black!50,rounded corners=2pt,align=center,
+    minimum height=0.95cm,text width=2.15cm,inner sep=4pt},
+  flow/.style={-{Latex[length=2mm]},draw=black!55,line width=0.65pt}
+]
+\node[block,fill=black!3] (features) at (0,0)
+  {ResNet18 congelata\\feature \(\boldsymbol f\in\mathbb R^{512}\)};
+\foreach \row/\modelname/\yy in {b/B2/2,q/Q/0,f/QF/-2}{
+  \node[block] (pre\row) at (3.1,\yy)
+    {Proiezione + \(\pi\tanh\)\\\(512\rightarrow q\)};
+  \node[anchor=south,yshift=2pt,font=\footnotesize\bfseries] at (pre\row.north) {\modelname};
+  \node[block] (post\row) at (9.5,\yy)
+    {Classificatore affine\\\(q\rightarrow K\)};
+  \draw[flow] (features.east) -- (pre\row.west);
+}
+\node[block,fill=blue!5] (midb) at (6.3,2)
+  {Nessun circuito\\Uscita: \(\boldsymbol a\)};
+\node[block,fill=violet!7] (midq) at (6.3,0)
+  {Circuito \(+\langle Z\rangle\)\\\(\boldsymbol\theta\) addestrabile};
+\node[block,fill=orange!9] (midf) at (6.3,-2)
+  {Circuito \(+\langle Z\rangle\)\\\(\boldsymbol\theta\) congelato};
+\foreach \row in {b,q,f}{
+  \draw[flow] (pre\row.east) -- (mid\row.west);
+  \draw[flow] (mid\row.east) -- (post\row.west);
+}
+\end{tikzpicture}
