@@ -48,9 +48,9 @@ def test_run_fingerprint_changes_with_every_scientific_identity_field() -> None:
     base = RunSpec("binary", "Q", 4, 42, 1, 2, "full")
 
     def fingerprint(spec, dataset_config=dataset):
-        return build_run_identity(
-            spec, dataset_config=dataset_config, training_config=training
-        )["config_fingerprint"]
+        return build_run_identity(spec, dataset_config=dataset_config, training_config=training)[
+            "config_fingerprint"
+        ]
 
     base_fingerprint = fingerprint(base)
     for changed in (

@@ -186,14 +186,15 @@ def test_create_colab_bundles_keeps_code_and_dataset_archives_small(tmp_path):
     (project / "scripts" / "train.py").write_text("print('train')\n", encoding="utf-8")
     (project / "configs" / "training.yaml").write_text("batch_size: 32\n", encoding="utf-8")
     (project / "notebooks" / "colab_quickstart.ipynb").write_text("{}", encoding="utf-8")
-    (project / "notebooks" / "colab_runner.ipynb").write_text("{}", encoding="utf-8")
     for notebook_name in (
         "01_dataset_audit.ipynb",
         "02_experiment_analysis.ipynb",
         "03_thesis_figures.ipynb",
     ):
         (project / "notebooks" / notebook_name).write_text("{}", encoding="utf-8")
-    (project / "data" / "source" / "GalaxyCandidates.csv").write_text("objid\n1\n", encoding="utf-8")
+    (project / "data" / "source" / "GalaxyCandidates.csv").write_text(
+        "objid\n1\n", encoding="utf-8"
+    )
     (project / "data" / "images" / "spiral" / "1.jpg").write_bytes(b"fake-image")
     (project / ".venv" / "lib").mkdir(parents=True)
     (project / ".venv" / "lib" / "ignored.py").write_text("", encoding="utf-8")
@@ -218,4 +219,3 @@ def test_create_colab_bundles_keeps_code_and_dataset_archives_small(tmp_path):
     assert "data/source/GalaxyCandidates.csv" in dataset_members
     assert "data/images/spiral/1.jpg" in dataset_members
     assert (output / "colab_quickstart.ipynb").is_file()
-    assert (output / "colab_runner.ipynb").is_file()

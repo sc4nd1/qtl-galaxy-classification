@@ -85,11 +85,7 @@ def _metric_inference_values(
             metric_frame = group[[unit, metric]].dropna(subset=[metric])
             if metric_frame[unit].isna().any():
                 raise ValueError(f"Colonna {unit} mancante per alcune osservazioni di {metric}")
-            values = (
-                metric_frame.groupby(unit, sort=True)[metric]
-                .mean()
-                .to_numpy(dtype=np.float64)
-            )
+            values = metric_frame.groupby(unit, sort=True)[metric].mean().to_numpy(dtype=np.float64)
             return values, unit, observation_count
     return raw_values.to_numpy(dtype=np.float64), "run", observation_count
 

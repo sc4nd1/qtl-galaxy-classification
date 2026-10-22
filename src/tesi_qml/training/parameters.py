@@ -16,9 +16,7 @@ def trainable_parameters(model: nn.Module) -> tuple[nn.Parameter, ...]:
 
 def _optimizer_parameters(optimizer: Optimizer) -> tuple[nn.Parameter, ...]:
     return tuple(
-        parameter
-        for group in optimizer.param_groups
-        for parameter in group.get("params", ())
+        parameter for group in optimizer.param_groups for parameter in group.get("params", ())
     )
 
 

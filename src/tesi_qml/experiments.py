@@ -46,8 +46,8 @@ class RunSpec:
             raise ValueError("Il confronto primario usa soltanto iterazione 1")
         if self.n_layers != 2:
             raise ValueError("Il confronto primario usa profondità 2")
-        if self.subset_size != "full":
-            raise ValueError("Il confronto primario usa il dataset completo")
+        if self.subset_size not in {"100", "300", "900", "full"}:
+            raise ValueError("Dimensione subset non supportata")
 
     @property
     def quantum_frozen(self) -> bool:
@@ -80,7 +80,9 @@ def _configured_task(dataset_config: dict[str, Any], task_name: str) -> TaskSpec
     return TaskSpec(
         name=task_name,
         class_names=tuple(configured["class_names"]),
-        class_to_index={str(key): int(value) for key, value in configured["class_to_index"].items()},
+        class_to_index={
+            str(key): int(value) for key, value in configured["class_to_index"].items()
+        },
     )
 
 

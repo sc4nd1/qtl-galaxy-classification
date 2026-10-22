@@ -14,7 +14,7 @@ def main() -> None:
         "Scarica cutout SDSS DR17 in modo atomico e riprendibile",
         default_config="configs/dataset.yaml",
     )
-    
+
     parser.add_argument("--start", type=int, default=0)
     parser.add_argument("--stop", type=int)
     args = parser.parse_args()

@@ -1,130 +1,75 @@
-# Heatmap Grad-CAM — analisi separata
+# Modulo di Interpretabilità Visiva (Grad-CAM)
 
-Tutto il lavoro nuovo è in questa directory. Non sono stati modificati
-capitoli, bibliografia principale, notebook precedenti, dati o checkpoint originali.
-Non è stato eseguito nuovo training.
+Questo modulo implementa l'analisi di Explainable AI (XAI) tramite **Gradient-weighted Class Activation Mapping (Grad-CAM)** ([Selvaraju et al., ICCV 2017](https://openaccess.thecvf.com/content_iccv_2017/html/Selvaraju_Grad-CAM_Visual_Explanations_ICCV_2017_paper.html)) per confrontare l'attribuzione spaziale delle feature visive tra le teste di classificazione classica ($B2$) e quantistica ($Q$, $QF$) applicate alla medesima backbone ResNet-18.
 
-## Da aprire
+---
 
-- **`07_colab_gradcam.ipynb`**: notebook Colab autonomo, include il motore;
-  non devi caricare separatamente lo script Python.
-- **`preview.html`**: galleria locale degli esempi già generati e verificati.
-- **`outputs/`**: figure PDF/PNG, audit, selezione degli oggetti e mappe numeriche.
-- `gradcam_analysis.py`: motore utilizzabile anche da terminale.
-- `metodo_gradcam.tex` e `references.bib`: proposta di testo e riferimento
-  da valutare per il capitolo 4, **non inseriti automaticamente nella tesi**.
+## 1. Struttura del Modulo
 
-## Che cosa rappresentano le figure
+- [`gradcam_analysis.py`](gradcam_analysis.py): motore di inferenza, retropropagazione dei gradienti e generazione delle mappe Grad-CAM, eseguibile da riga di comando.
+- [`07_colab_gradcam.ipynb`](07_colab_gradcam.ipynb): notebook autonomo per l'esecuzione del protocollo su Google Colab con gestione degli archivi di stato e download dei pesi ufficiali.
+- [`test_heatmaps.py`](test_heatmaps.py): suite di test di regressione per la verifica delle ricostruzioni probabilistiche, dell'allineamento dei logit e della corretta propagazione dei gradienti quantistici.
 
-Ogni esempio mostra il crop effettivo di test e tre sovrapposizioni:
-B2, Q e QF. La classe spiegata è **sempre la classe vera**, anche se
-un classificatore ne predice un'altra. La probabilità mostrata è quella
-della classe spiegata, non necessariamente la confidenza massima.
+---
 
-La ResNet18 è congelata e identica: non impara nuove feature in questa
-analisi. Si studia come le diverse teste utilizzano la sua rappresentazione.
-Il gradiente del logit attraversa tutta la testa, incluso il circuito
-quantistico nel caso di Q e QF, fino all'output di `layer4`.
-Il calcolo usa la media spaziale del gradiente per pesare i 512 canali,
-poi somma i canali e applica ReLU (Grad-CAM positivo).
+## 2. Formulazione Matematica e Principio di Funzionamento
 
-La mappa originale ha risoluzione **7×7**. L'interpolazione bilineare
-a 224×224 non aggiunge informazione e non giustifica interpretazioni
-precise di nuclei, bracci o singoli pixel. Non è una attention map
-nativa, una spiegazione completa o una prova causale del ragionamento.
+La backbone convoluzionale ResNet-18 (`IMAGENET1K_V1`) è mantenuta identica e congelata per tutte le architetture. Lo studio valuta come le diverse teste di classificazione ($B2$, $QF$, $Q$) retropropagano il gradiente sulle feature estratte all'uscita dell'ultimo blocco convoluzionale (`layer4`), caratterizzato da una griglia spaziale $7 \times 7$ con $512$ canali.
 
-La scala è condivisa tra B2/Q/QF entro la stessa immagine, dividendo
-per il massimo positivo dei tre CAM interpolati. Le intensità non sono
-probabilità e dipendono anche dalla scala dei logit/gradienti dei modelli:
-non usarle per misurare quale rete “capisce di più”. Le scale di immagini
-diverse non sono confrontabili. Le mappe firmate sono conservate nei NPZ,
-ma le figure mostrano solo contributi positivi. Un CAM nullo resta nullo.
+### 2.1 Calcolo delle Mappe di Attribuzione
 
-## Selezione e validazione
+1. **Retropropagazione del Logit**:
+   Dato il logit $y^c$ associato alla classe target $c$ (per protocollo scientifico, **sempre la classe reale** dell'oggetto astronomico), il gradiente attraversa l'intera testa (inclusi i gate quantistici differenziabili e le proiezioni lineari) fino alle mappe di attivazione $A^k \in \mathbb{R}^{7 \times 7}$ del canale $k \in \{1, \dots, 512\}$ di `layer4`:
+   $$\alpha_k^c = \frac{1}{Z} \sum_{i=1}^7 \sum_{j=1}^7 \frac{\partial y^c}{\partial A_{i, j}^k}$$
 
-Default: task a tre classi, Full, seed 7, 4 qubit, un oggetto per classe.
-Gli oggetti sono ordinati con SHA-256 di `selection_seed|objid`; non
-vengono selezionati per bellezza della heatmap, correttezza o confidenza.
-Un ulteriore esempio di disaccordo può essere aggiunto: è esplicitamente
-etichettato come caso selezionato, non come campione rappresentativo.
-Cambiare seed o scegliere manualmente gli ObjID è possibile, ma va dichiarato.
+2. **Combinazione Lineare e Rettificazione**:
+   I pesi di importanza $\alpha_k^c$ fungono da coefficienti per la combinazione lineare delle mappe di feature, a cui viene applicata la rettificazione ReLU per isolare unicamente i gradienti a contribuzione positiva:
+   $$L_{\text{Grad-CAM}}^c = \text{ReLU}\left( \sum_{k=1}^{512} \alpha_k^c A^k \right) \in \mathbb{R}^{7 \times 7}$$
 
-Prima di accettare un esempio il motore verifica:
+3. **Interpolazione e Sovrapposizione**:
+   La matrice $7 \times 7$ risultante viene interpolata bilinearmente a $224 \times 224$ pixel per consentire la sovrapposizione visiva al crop di test.
+   > **Vincolo di risoluzione**: l'interpolazione bilineare serve unicamente alla visualizzazione qualitativa e non aggiunge contenuto informativo: non supporta inferenze a livello di singoli pixel, filamenti o dettagli stellari sub-risolti.
 
-1. Una sola run per combinazione task/subset/seed/dimensione/modello.
-2. Provenance e inizializzazioni appaiate; gli stessi oggetti di test.
-3. Firma dell'ansatz finale RY → due blocchi RZ/RY + catena CNOT aperta.
-4. Fingerprint del checkpoint `best.pt` coerente con `run_config.json`.
-5. Pesi ufficiali ResNet18 ImageNet1K V1 e hash dell'immagine originale.
-6. Preprocessing effettivo: RGB, center crop 224, normalizzazione ImageNet,
-   **senza il resize automatico del preset TorchVision**.
-7. Probabilità ricostruite entro 1e-4 da quelle salvate; stessa classe predetta;
-   logit entro 1e-3. Un disallineamento fa fallire l'analisi.
+4. **Normalizzazione Congiunta**:
+   Entro la medesima immagine di galassia, la mappa termica è normalizzata congiuntamente per il massimo positivo registrato tra i tre modelli confrontati ($B2$, $QF$, $Q$):
+   $$\widetilde{L}_m^c = \frac{L_m^c}{\max_{m' \in \{B2, Q, QF\}} \left( \max L_{m'}^c \right)}$$
+   Le intensità dipendono dalla scala numerica dei logit e dei gradienti dei singoli modelli: non costituiscono probabilità assolute e non vanno intese come misure quantitative di accuratezza percettiva.
 
-Il controllo di predizione non costituisce un test di fedeltà causale della
-spiegazione. Non sono stati eseguiti esperimenti di randomizzazione dei pesi
-o occlusione: i grafici restano analisi qualitative, non evidenza statistica
-di superiorità tra architetture. L'audit viene salvato anche in caso di errore:
-usare per la tesi solo cartelle con `"status": "complete"`.
+---
 
-## Colab: esecuzione
+## 3. Protocollo di Selezione e Controlli di Integrità
 
-1. Apri `07_colab_gradcam.ipynb`, basta un runtime CPU.
-2. Controlla i percorsi della prima cella:
-   - Full: `.../colab_bundle/colab_state.tar.gz`;
-   - subset: `.../colab_bundle/colab_subset_state.tar.gz` (verifica il tuo nome);
-   - immagini: `.../colab_bundle/colab_dataset.tar.gz`.
-3. Esegui le celle in ordine. Non eseguire i vecchi setup di training.
-4. Gli output locali sono in `/content/heat_map/outputs`; al termine vengono
-   copiati come ZIP in `MyDrive/tesi_qml_colab/heat_map`.
+Per garantire la riproducibilità ed escludere selezioni arbitrarie (*cherry-picking*):
+- I campioni di test sono estratti in modo deterministico mediante ordinamento pseudocasuale basato su hash SHA-256 (`selection_seed|objid`).
+- Prima di accettare una ricostruzione, il motore esegue i seguenti controlli vincolanti:
+  1. Corrispondenza univoca della tupla `(task, subset, seed, qubits, model)`.
+  2. Verifica delle inizializzazioni appaiate e dell'identità degli indici del test set sigillato.
+  3. Verifica del fingerprint del checkpoint `best.pt` con `run_config.json`.
+  4. Preprocessing rigoroso: estrazione crop centrale a 224 pixel dall'immagine originale 320×320 e normalizzazione ImageNet, senza resize intermedio.
+  5. **Verifica numerica di fedeltà**: le probabilità previste devono corrispondere a quelle registrate in `test_predictions.parquet` entro una tolleranza di $10^{-4}$, con scarto sui logit inferiore a $10^{-3}$. Qualsiasi divergenza superiore provoca l'interruzione con errore.
 
-Il notebook crea un ambiente isolato in `/content/heat_map/.venv`, senza
-accesso ai pacchetti globali di Colab. Non aggiorna NumPy nel kernel e
-non richiede il riavvio. Non installa JAX né i plugin CUDA JAX, inutili
-per l'interfaccia Torch usata qui. Il notebook è validato staticamente;
-l'installazione della virtualenv su Colab non è stata eseguita localmente.
+---
 
-La prima esecuzione scarica i pacchetti e, se necessario, i pesi ufficiali
-ResNet18 (~45 MB). Non scarica galassie: legge dall'archivio soltanto quelle
-selezionate. Gli archivi originali sono aperti in sola lettura.
-Il caricamento dei checkpoint usa pickle: impiegare **solo i propri archivi
-fidati**, non file `.pt` provenienti da terzi sconosciuti.
+## 4. Esecuzione
 
-## Esecuzione locale
+### Esecuzione Locale
 
-Dalla radice del repository, usando un ambiente con Torch, TorchVision,
-PennyLane, NumPy, pandas, Pillow, Matplotlib e supporto Parquet:
+Dalla radice del repository:
 
 ```powershell
-py -3.10 -B heat_map/gradcam_analysis.py `
-  --state colab_pacchetto_finale/colab_state `
-  --dataset colab_pacchetto_finale/stack_and_notebooks/colab_dataset.tar.gz `
+# Esecuzione dell'analisi Grad-CAM su task triclasse, repeat seed 7, 4 qubit
+python heat_map/gradcam_analysis.py `
+  --state results `
+  --dataset data/images `
   --task three_class --subset full --seed 7 --qubits 4 `
-  --extra-disagreement --trust-checkpoints
+  --trust-checkpoints
+
+# Esecuzione della suite di test del modulo Grad-CAM
+pytest heat_map/test_heatmaps.py -q
 ```
 
-Opzionale: `--weights PERCORSO/resnet18-f37072fd.pth` per riusare una copia
-locale ufficiale senza scaricarla. Per i subset passare lo snapshot corretto
-e `--subset 100` (oppure 300/900). Gli output hanno sempre un timestamp nuovo.
+### Esecuzione su Google Colab
 
-```powershell
-py -3.10 -B heat_map/test_heatmaps.py
-py -3.10 -B heat_map/build_notebook.py
-py -3.10 -B heat_map/build_gallery.py
-```
-
-Il motore è stato eseguito sui checkpoint reali in locale. L'ambiente locale
-usa Torch 2.10 / TorchVision 0.25 / PennyLane 0.42.3: le differenze rispetto
-all'ambiente di training sono registrate in ciascun `audit.json`, insieme
-agli scarti effettivi delle predizioni. Non è stata cambiata l'installazione locale.
-
-## Come usarle nella tesi
-
-Nel capitolo 4 descrivere il metodo e mostrare un esempio illustrativo.
-Nel capitolo 5 usare eventualmente un confronto corretto e uno di errore,
-senza trasformare un singolo seed in prova generale. La classe vera,
-quella predetta, il regime, il seed e la dimensione sono dichiarati nelle figure.
-Non usare il solo colore per affermare che la rete identifica strutture
-fisiche: serve distinguere osservazione visiva e ipotesi interpretativa.
-
-Riferimento: [Selvaraju et al., ICCV 2017](https://openaccess.thecvf.com/content_iccv_2017/html/Selvaraju_Grad-CAM_Visual_Explanations_ICCV_2017_paper.html).
+1. Aprire il notebook [`07_colab_gradcam.ipynb`](07_colab_gradcam.ipynb) in un runtime Colab (GPU o CPU).
+2. Verificare i percorsi dei bundle in Google Drive (`colab_state.tar.gz` o `colab_subset_state.tar.gz` e `colab_dataset.tar.gz`).
+3. Eseguire sequenzialmente le celle del notebook per generare i grafici e archiviare l'output in `MyDrive/tesi_qml_colab/heat_map/`.

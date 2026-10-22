@@ -348,8 +348,7 @@ def plot_task_model_macro_f1(frame: pd.DataFrame) -> Figure:
         raise ValueError(f"Colonne macro-F1 mancanti: {sorted(missing)}")
     values = frame.dropna(subset=["task", "model", "f1_macro"]).copy()
     values["model_label"] = [
-        _model_label(model, qubits)
-        for model, qubits in zip(values["model"], values["n_qubits"])
+        _model_label(model, qubits) for model, qubits in zip(values["model"], values["n_qubits"])
     ]
     summary = (
         values.groupby(["model_label", "task"], sort=True)["f1_macro"]
@@ -437,8 +436,7 @@ def plot_merger_metrics(frame: pd.DataFrame) -> Figure:
         raise ValueError(f"Colonne merger mancanti: {sorted(missing)}")
     values = frame.loc[frame["task"] == "three_class"].copy()
     values["model_label"] = [
-        _model_label(model, qubits)
-        for model, qubits in zip(values["model"], values["n_qubits"])
+        _model_label(model, qubits) for model, qubits in zip(values["model"], values["n_qubits"])
     ]
     summary = values.groupby("model_label", sort=True)[list(metrics)].mean()
     if summary.empty:

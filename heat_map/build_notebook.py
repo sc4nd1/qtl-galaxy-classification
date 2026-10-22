@@ -1,57 +1,58 @@
 """Generate the self-contained Colab notebook; writes only inside heat_map."""
+
 import ast
 import json
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-source = (HERE/'gradcam_analysis.py').read_text(encoding='utf-8')
-requirements = (HERE/'requirements-colab.txt').read_text(encoding='utf-8')
+source = (HERE / "gradcam_analysis.py").read_text(encoding="utf-8")
+requirements = (HERE / "requirements-colab.txt").read_text(encoding="utf-8")
 cells = []
 
 
 def markdown(text):
-    cells.append({'cell_type':'markdown','metadata':{},'source':text.strip().splitlines(keepends=True)})
+    cells.append(
+        {"cell_type": "markdown", "metadata": {}, "source": text.strip().splitlines(keepends=True)}
+    )
 
 
 def code(text):
-    text=text.strip()+'\n'
+    text = text.strip() + "\n"
     ast.parse(text)
-    cells.append({'cell_type':'code','execution_count':None,'outputs':[],
-                  'metadata':{},'source':text.splitlines(keepends=True)})
+    cells.append(
+        {
+            "cell_type": "code",
+            "execution_count": None,
+            "outputs": [],
+            "metadata": {},
+            "source": text.splitlines(keepends=True),
+        }
+    )
 
 
-markdown('''
-# Grad-CAM — confronto B2 / Q / QF
+markdown("""
+# Interpretabilità Visiva con Grad-CAM — Confronto B2 / Q / QF
 
-Analisi separata dalla tesi e dal training. Nessun file degli esperimenti viene modificato.
-Si leggono un archivio di stato e quello del dataset; si estraggono soltanto tre
-checkpoint e poche immagini. **Nessun nuovo addestramento e nessun download di galassie.**
+Modulo di analisi XAI basato su Gradient-weighted Class Activation Mapping (Grad-CAM).
+I gradienti vengono retropropagati attraverso le teste classiche e quantistiche fino all'uscita di `layer4` della backbone ResNet-18 (512 feature map di dimensione 7×7).
 
-La mappa spiega il **logit della classe vera**, mantenendo lo stesso target per tutti
-i modelli, anche se le predizioni sono diverse. Il circuito di Q/QF resta nel percorso
-del gradiente. Le mappe 7×7 sono interpolate sul crop 224×224: non individuano strutture
-con precisione al pixel e non dimostrano un meccanismo causale.
+La mappa termica spiega il logit della **classe reale** target, mantenendo un riferimento costante per tutti i classificatori. Le mappe a risoluzione 7×7 sono interpolate bilinearmente sul crop a 224×224 per la sovrapposizione qualitativa.
 
-CPU sufficiente per pochi esempi. La prima installazione richiede il download dei
-pacchetti e, se assenti, dei pesi ImageNet ResNet18. Tutto l'ambiente scientifico è
-isolato in `/content/heat_map/.venv`: non si modifica NumPy nel kernel di Colab,
-non serve riavviare il runtime, non si installa JAX.
-''')
-markdown('''
-## 1. Percorsi e selezione
+Tutto l'ambiente di esecuzione su Colab è isolato in `/content/heat_map/.venv`, senza interferire con i pacchetti globali del sistema.
+""")
+markdown("""
+## 1. Percorsi e Parametri Sperimentali
 
-Controlla i due percorsi degli archivi. Per `full` usa `colab_state.tar.gz`;
-per 100/300/900 seleziona il tuo `colab_subset_state.tar.gz` e cambia `SUBSET`.
-Sono accettate anche directory già estratte, purché contengano le run o il dataset.
-
-Il seed 7 è fissato come esempio, non selezionato come migliore. Si sceglie un'immagine
-per classe con una regola deterministica basata sull'ObjID, indipendente dalle predizioni.
-L'esempio aggiuntivo di disaccordo è deliberatamente selezionato e viene etichettato.
-''')
-code('''
+Configurare i percorsi degli archivi su Google Drive (`colab_state.tar.gz` o `colab_subset_state.tar.gz` e `colab_dataset.tar.gz`).
+La selezione dei campioni di test per classe avviene con procedura deterministica e tracciata (SHA-256 di `selection_seed|objid`).
+""")
+code("""
+import json
+import os
+import shutil
+import subprocess
+import sys
 from pathlib import Path
-import os, sys, subprocess, json, shutil
-from datetime import datetime, timezone
 
 try:
     from google.colab import drive
@@ -69,8 +70,8 @@ if IN_COLAB:
 else:
     WORK_DIR = Path.cwd() if Path.cwd().name == 'heat_map' else Path.cwd() / 'heat_map'
     PROJECT = WORK_DIR.parent
-    STATE_SOURCE = PROJECT / 'colab_pacchetto_finale/colab_state'
-    DATASET_SOURCE = PROJECT / 'colab_pacchetto_finale/stack_and_notebooks/colab_dataset.tar.gz'
+    STATE_SOURCE = PROJECT / 'results'
+    DATASET_SOURCE = PROJECT / 'data/images'
     SAVE_DIR = WORK_DIR / 'exports'
 
 TASK = 'three_class'       # 'binary' oppure 'three_class'
@@ -92,29 +93,35 @@ for path in (STATE_SOURCE, DATASET_SOURCE):
         raise FileNotFoundError(f'Correggi il percorso: {path}')
 print({'work': str(WORK_DIR), 'state': str(STATE_SOURCE), 'dataset': str(DATASET_SOURCE),
        'task': TASK, 'subset': SUBSET, 'qubits': QUBITS, 'seed': REPEAT_SEED})
-''')
-markdown('''
+""")
+markdown("""
 ## 2. Motore incluso nel notebook
 
 Questa cella salva una copia autonoma del motore **dentro heat_map**, con nome distinto
 dal sorgente locale. Non modifica o importa i moduli di `tesi_qml`.
-''')
-code('HELPER_SOURCE = '+repr(source)+'\n\nREQUIREMENTS = '+repr(requirements)+'''
+""")
+code(
+    "HELPER_SOURCE = "
+    + repr(source)
+    + "\n\nREQUIREMENTS = "
+    + repr(requirements)
+    + """
 ENGINE = WORK_DIR / 'gradcam_colab_engine.py'
 ENGINE.write_text(HELPER_SOURCE, encoding='utf-8')
 REQ_FILE = WORK_DIR / 'requirements_colab_generated.txt'
 REQ_FILE.write_text(REQUIREMENTS, encoding='utf-8')
 print('Motore salvato in', ENGINE)
-''')
-markdown('''
+"""
+)
+markdown("""
 ## 3. Ambiente isolato
 
 Non eseguire installazioni nel runtime principale. L'installazione seguente usa una
 virtualenv **senza accesso ai pacchetti globali**, così JAX e i plugin preinstallati di
 Colab non interferiscono. Alla prima esecuzione serve connettività per i pacchetti.
 Il runtime Colab non è stato eseguito da questo notebook durante la preparazione locale.
-''')
-code('''
+""")
+code("""
 import venv
 ENV = dict(os.environ)
 for name, folder in [('MPLCONFIGDIR','cache/matplotlib'), ('TORCH_HOME','cache/torch'),
@@ -153,8 +160,8 @@ live([PYTHON, '-B', '-c',
       "import torch,torchvision,numpy,pandas,pennylane; "
       "print({'torch':torch.__version__,'torchvision':torchvision.__version__,"
       "'numpy':numpy.__version__,'pandas':pandas.__version__,'pennylane':pennylane.__version__})"])
-''')
-markdown('''
+""")
+markdown("""
 ## 4. Generazione e salvataggio
 
 Prima di accettare una figura vengono verificati: identità delle run, checkpoint,
@@ -165,8 +172,8 @@ predizioni archiviate. Tolleranza sulle probabilità: 0,0001; sui logit: 0,001.
 Ogni esecuzione crea una cartella con timestamp. Dopo il processo viene salvato uno
 ZIP in `SAVE_DIR`, anche in caso di errore (con stato `failed`, non pronto per la tesi).
 I file `.pt` sono checkpoint propri e fidati: non usare archivi di provenienza sconosciuta.
-''')
-code('''
+""")
+code("""
 if not TRUST_MY_CHECKPOINTS:
     raise RuntimeError('Conferma di usare soltanto i tuoi checkpoint fidati.')
 
@@ -200,8 +207,8 @@ AUDIT = json.loads((LAST_OUTPUT / 'audit.json').read_text(encoding='utf-8'))
 if AUDIT['status'] != 'complete':
     raise RuntimeError('Analisi non completa: leggere audit.json, non usare le figure nella tesi.')
 print({'status': AUDIT['status'], 'examples': len(AUDIT['examples']), 'output': str(LAST_OUTPUT)})
-''')
-markdown('''
+""")
+markdown("""
 ## 5. Anteprima e lettura
 
 Ogni figura confronta B2, Q e QF sullo **stesso target**. Per un errore non stiamo
@@ -213,32 +220,37 @@ non assenza generale di informazione. I valori grezzi, anche firmati, sono salva
 
 Per cambiare 4→8 qubit basta modificare `QUBITS` e ripetere la cella di generazione.
 Per i subset cambiare anche archivio e `SUBSET`. Nessun training viene riavviato.
-''')
-code('''
-from IPython.display import display, Image as DisplayImage
+""")
+code("""
+from IPython.display import Image as DisplayImage
+from IPython.display import display
+
 if AUDIT['status'] != 'complete':
     raise RuntimeError('Mostrare soltanto analisi complete.')
 for path in sorted((LAST_OUTPUT / 'figures').glob('*.png')):
     display(DisplayImage(filename=str(path), width=1200))
-''')
-markdown('''
-## Uso nella tesi
+""")
+markdown("""
+## Riferimenti Metodologici
 
-- Capitolo 4: metodo Grad-CAM e un esempio esplicitamente illustrativo.
-- Capitolo 5: confronto qualitativo, senza inferire superiorità globale da un seed.
-- Non aggiornare automaticamente i capitoli o la bibliografia principale.
-- PDF per Overleaf in `figures/`; `audit.json` e `selected_examples.csv` conservano
-  la provenienza; `maps/` conserva le mappe grezze e i gradienti.
+- Il modulo confronta le mappe di salienza nello spazio di feature tra modelli classici con bottleneck ($B2$) e modelli variazionali ($Q$, $QF$).
+- Le mappe e le informazioni di provenienza sono archiviate in `audit.json` e `selected_examples.csv`; i tensori completi dei gradienti sono salvati in formato NPZ.
 
-Riferimento: Selvaraju et al., *Grad-CAM: Visual Explanations From Deep Networks
-via Gradient-Based Localization*, ICCV 2017, pp. 618–626.
+Riferimento scientifico: Selvaraju et al., *Grad-CAM: Visual Explanations From Deep Networks via Gradient-Based Localization*, ICCV 2017, pp. 618–626.
 [Articolo originale](https://openaccess.thecvf.com/content_iccv_2017/html/Selvaraju_Grad-CAM_Visual_Explanations_ICCV_2017_paper.html).
-''')
-notebook={'cells':cells,'metadata':{'kernelspec':{'display_name':'Python 3','language':'python','name':'python3'},
-                                  'language_info':{'name':'python'},'colab':{'name':'07_colab_gradcam.ipynb'}},
-          'nbformat':4,'nbformat_minor':5}
-for i,cell in enumerate(cells):
-    cell['id']=f'heatmap-{i:02d}'
-path=HERE/'07_colab_gradcam.ipynb'
-path.write_text(json.dumps(notebook,ensure_ascii=False,indent=1)+'\n',encoding='utf-8')
+""")
+notebook = {
+    "cells": cells,
+    "metadata": {
+        "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
+        "language_info": {"name": "python"},
+        "colab": {"name": "07_colab_gradcam.ipynb"},
+    },
+    "nbformat": 4,
+    "nbformat_minor": 5,
+}
+for i, cell in enumerate(cells):
+    cell["id"] = f"heatmap-{i:02d}"
+path = HERE / "07_colab_gradcam.ipynb"
+path.write_text(json.dumps(notebook, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
 print(path)

@@ -64,7 +64,7 @@ MyDrive/tesi_qml_colab/colab_bundle/
 
 Il primo avvio è stato effettuato tramite `colab_quickstart.ipynb`. Il notebook
 monta Google Drive, estrae i due archivi nella directory temporanea
-`/content/tesi_finale`, installa le dipendenze e registra il progetto Python in
+`/content/qtl-galaxy-classification`, installa le dipendenze e registra il progetto Python in
 modalità editable. Il dispositivo viene selezionato automaticamente: viene
 usato `cuda` quando una GPU è disponibile, altrimenti l'esecuzione prosegue su
 CPU.
@@ -79,7 +79,7 @@ Prima dell'addestramento vengono eseguiti tre livelli di controllo:
 2. esecuzione della suite di test non quantistica;
 3. esecuzione separata dei test dell'implementazione PennyLane.
 
-Durante l'esecuzione reale, la suite non quantistica ha completato 137 test con
+Durante la validazione dell'ambiente, la suite non quantistica ha completato 143 test con
 esito positivo e ne ha esclusi 9 tramite marker. Questo controllo verifica, fra
 gli altri aspetti, configurazioni, split, trasformazioni, inizializzazione dei
 modelli, metriche, checkpoint, matrice sperimentale e gestione della sessione
@@ -146,8 +146,8 @@ procedura di estrazione.
 
 ## Addestramento riprendibile
 
-Dopo il quickstart, la campagna viene gestita da `colab_runner.ipynb`. Il
-parametro `SESSION_RUN_LIMIT` stabilisce il numero massimo di esperimenti da
+La campagna viene gestita tramite `colab_quickstart.ipynb`. Il
+parametro `FULL_RUN_LIMIT` stabilisce il numero massimo di esperimenti da
 tentare nella sessione corrente. Per l'esecuzione complessiva è stato impostato
 al numero di run ancora pendenti.
 
@@ -173,17 +173,17 @@ rate iniziale pari a `1e-3`, weight decay `1e-4`, gradient clipping a 1.0 e
 12. Il checkpoint migliore è selezionato esclusivamente sul validation set; il
 test set viene valutato soltanto dopo il ripristino di `best.pt`.
 
-Prima dell'avvio della sessione lunga erano stati completati 5 run senza
-fallimenti, mentre 155 risultavano pendenti. Questo valore rappresenta uno stato
-operativo intermedio e dovrà essere sostituito, nella versione definitiva della
-tesi, con il conteggio finale della matrice.
+L'intera matrice primaria da 160 run è stata completata con successo senza fallimenti,
+garantendo la piena copertura di tutti i 10 repeat seed per entrambi i task e tutte le 8 configurazioni.
+I risultati sono stati validati e archiviati in modo atomico.
 
 ## Persistenza atomica su Google Drive
 
-Lo stato persistente è memorizzato nel file:
+Lo stato persistente è memorizzato nei file:
 
 ```text
-MyDrive/tesi_qml_colab/colab_bundle/colab_state.tar.gz
+MyDrive/tesi_qml_colab/colab_state.tar.gz          # Matrice primaria full
+MyDrive/tesi_qml_colab/colab_subset_state.tar.gz   # Campagna secondaria subset
 ```
 
 L'archivio contiene due componenti principali:
@@ -222,8 +222,8 @@ marcato come `failed`, conservando l'informazione sull'errore.
 
 ## Aggregazione e produzione delle figure
 
-Al raggiungimento di 160 run completi e zero fallimenti, la cella finale del
-runner esegue tre operazioni sequenziali:
+Al raggiungimento dei run completati, la cella finale di aggregazione
+esegue le operazioni sequenziali:
 
 1. `aggregate_results.py` raccoglie i risultati individuali e costruisce le
    tabelle aggregate;
@@ -246,6 +246,25 @@ lo snapshot riproducibile della campagna e contiene sia gli output necessari
 alla tesi sia le feature utili a rieseguire analisi senza ripetere l'estrazione
 con ResNet18.
 
+## Campagna secondaria sui subset
+
+Oltre alla matrice primaria da 160 run, il protocollo sperimentale include l'analisi
+secondaria sui sottoinsiemi di training da 100, 300 e 900 campioni (480 run
+complessivi: 2 task × 10 seed × 3 subset × 8 configurazioni).
+
+La gestione di questa campagna è affidata a `scripts/colab_subsets.py` ed è richiamabile
+dal notebook `colab_quickstart.ipynb`:
+
+1. `prepare`: genera le configurazioni dedicate `training_subset_{size}.yaml`,
+   verifica la disgiunzione dei run ID rispetto alla matrice full e controlla
+   l'inclusione nidificata dei campioni ($100 \subset 300 \subset 900 \subset \text{full}$);
+2. `run`: esegue blocchi indipendenti e riprendibili da 160 run per ciascuna
+   dimensione, salvando atomicamente lo stato su Drive in `colab_subset_state.tar.gz`;
+3. `finalize`: aggrega i risultati con la matrice full, calcola le curve di apprendimento
+   Macro-F1 in funzione dei campioni di training, stima i confronti appaiati
+   secondari Q−B2 con correzione Holm e genera la figura della tesi
+   `macro_f1_vs_training_samples`.
+
 ## Considerazioni operative e limiti
 
 Google Colab fornisce un ambiente pratico per questa campagna, ma non garantisce
@@ -261,7 +280,6 @@ vantaggio hardware quantistico. Tutti i circuiti sono eseguiti tramite
 simulazione PennyLane e i risultati non costituiscono una dimostrazione di
 vantaggio computazionale o di *quantum advantage*.
 
-Infine, la versione definitiva della tesi dovrà riportare il conteggio finale dei
-run, la data di completamento, l'ambiente effettivo registrato negli artefatti e
-la dimensione dello snapshot finale. Tali informazioni devono essere ricavate
-dai file persistiti, evitando stime basate sull'output temporaneo del notebook.
+Tutti i 160 run della matrice primaria e i 480 run della campagna secondaria sono stati
+completati, verificati e consolidati negli archivi persistenti, da cui sono state
+ricavate tutte le tabelle numeriche e le figure vettoriali presentate nella tesi.

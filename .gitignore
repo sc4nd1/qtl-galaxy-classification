@@ -12,6 +12,7 @@ __pycache__/
 # Caches & Environments
 # ==============================================================================
 .pytest_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 *.egg-info/
@@ -24,16 +25,18 @@ ENV/
 
 # ==============================================================================
 # PyTorch Checkpoints & Large Experiment Outputs
+# Root experiment results are ignored, but generated figures in figures/results
+# and thesis/figures/results are tracked.
 # ==============================================================================
 *.pt
 *.pth
 *.ckpt
 *.bin
-results/
-colab_state/
-colab_subset_state/
-colab_pacchetto_finale/
-colab_bundle/*.tar.gz
+/results/
+/colab_state/
+/colab_subset_state/
+/colab_pacchetto_finale/
+/colab_bundle/*.tar.gz
 heat_map/cache/
 heat_map/outputs/
 
@@ -54,7 +57,7 @@ docs/*.pdf
 # ==============================================================================
 # File Temporanei e Archivi
 # ==============================================================================
-tmp/
+/tmp/
 *.zip
 *.tar.gz
 *.tgz

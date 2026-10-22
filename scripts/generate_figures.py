@@ -39,13 +39,9 @@ def main() -> None:
         run_config = (
             json.loads(config_path.read_text(encoding="utf-8")) if config_path.is_file() else {}
         )
-        class_names = tuple(
-            run_config.get("class_names", ("elliptical", "merger", "spiral"))
-        )
+        class_names = tuple(run_config.get("class_names", ("elliptical", "merger", "spiral")))
         figure_dir = run_dir / "figures"
-        confusion = plot_confusion_matrix(
-            metrics["confusion_matrix"]["raw"], class_names
-        )
+        confusion = plot_confusion_matrix(metrics["confusion_matrix"]["raw"], class_names)
         save_figure(confusion, figure_dir / "confusion_matrix")
         save_figure(
             plot_confusion_matrix(
@@ -96,13 +92,9 @@ def main() -> None:
         thesis_dir = root / "results" / "thesis_figures"
         save_figure(plot_architecture_schematic(), thesis_dir / "architecture_b2_qf_q")
         if {"task", "model", "n_qubits", "repeat_seed", "f1_macro"} <= set(runs.columns):
-            save_figure(
-                plot_task_model_macro_f1(runs), thesis_dir / "macro_f1_by_model_and_task"
-            )
+            save_figure(plot_task_model_macro_f1(runs), thesis_dir / "macro_f1_by_model_and_task")
             if {"B2", "QF", "Q"} <= set(runs["model"]):
-                save_figure(
-                    plot_paired_differences(runs), thesis_dir / "paired_q_minus_controls"
-                )
+                save_figure(plot_paired_differences(runs), thesis_dir / "paired_q_minus_controls")
         if {"model", "subset_size", "f1_macro"} <= set(runs.columns):
             numeric_subset = runs.loc[runs["subset_size"].astype(str) != "full"].copy()
             if not numeric_subset.empty:

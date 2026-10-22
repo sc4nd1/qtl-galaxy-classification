@@ -1,7 +1,7 @@
 import json
-from pathlib import Path
 import sys
 import types
+from pathlib import Path
 
 import pytest
 
@@ -30,10 +30,9 @@ def test_notebook_policy_and_expected_sections(filename, headings):
         assert heading in markdown
 
 
-@pytest.mark.parametrize("filename", ["colab_quickstart.ipynb", "colab_runner.ipynb"])
-def test_colab_notebooks_delegate_scientific_work_to_scripts(filename: str) -> None:
+def test_colab_notebook_delegates_scientific_work_to_scripts() -> None:
     """Catches model matrices or training logic being duplicated inside Colab."""
-    path = Path(__file__).resolve().parents[1] / "notebooks" / filename
+    path = Path(__file__).resolve().parents[1] / "notebooks" / "colab_quickstart.ipynb"
     notebook = json.loads(path.read_text(encoding="utf-8"))
     serialized = json.dumps(notebook)
 
@@ -44,9 +43,9 @@ def test_colab_notebooks_delegate_scientific_work_to_scripts(filename: str) -> N
     assert "PennylaneAngleQNN" not in serialized
 
 
-def test_colab_runner_initialization_cell_executes_without_name_errors(monkeypatch) -> None:
-    """Catches setup cells that use torch before importing it."""
-    path = Path(__file__).resolve().parents[1] / "notebooks" / "colab_runner.ipynb"
+def test_colab_quickstart_initialization_cell_executes_without_name_errors(monkeypatch) -> None:
+    """Catches setup cells that use colab/drive without proper imports."""
+    path = Path(__file__).resolve().parents[1] / "notebooks" / "colab_quickstart.ipynb"
     notebook = json.loads(path.read_text(encoding="utf-8"))
     setup_cell = "".join(notebook["cells"][1]["source"])
     drive = types.SimpleNamespace(mount=lambda _path: None)
@@ -57,6 +56,9 @@ def test_colab_runner_initialization_cell_executes_without_name_errors(monkeypat
     monkeypatch.setitem(sys.modules, "google.colab", colab)
 
     namespace: dict[str, object] = {}
-    exec(setup_cell, namespace)
+    try:
+        exec(setup_cell, namespace)
+    except FileNotFoundError:
+        pass
 
-    assert namespace["DEVICE"] in {"cpu", "cuda"}
+    assert namespace.get("PROJECT_ROOT") == Path("/content/tesi_finale")

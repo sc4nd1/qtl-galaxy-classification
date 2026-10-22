@@ -75,9 +75,9 @@ class PairedInitialization:
         post_weight, post_bias = _linear_tensors(
             num_classes, bottleneck_dim, generator=shared_generator
         )
-        quantum_weight = torch.empty(
-            n_layers, bottleneck_dim, 2, dtype=torch.float32
-        ).normal_(mean=0.0, std=quantum_init_std, generator=quantum_generator)
+        quantum_weight = torch.empty(n_layers, bottleneck_dim, 2, dtype=torch.float32).normal_(
+            mean=0.0, std=quantum_init_std, generator=quantum_generator
+        )
         return cls(pre_weight, pre_bias, post_weight, post_bias, quantum_weight)
 
     def checksums(self) -> dict[str, str]:
@@ -120,6 +120,4 @@ class PairedInitialization:
             if tuple(target.shape) != tuple(self.quantum_weight.shape):
                 raise ValueError("Shape dei pesi quantistici incompatibile")
             with torch.no_grad():
-                target.copy_(
-                    self.quantum_weight.to(device=target.device, dtype=target.dtype)
-                )
+                target.copy_(self.quantum_weight.to(device=target.device, dtype=target.dtype))

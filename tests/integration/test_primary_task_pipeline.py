@@ -113,9 +113,7 @@ def test_primary_cli_pipeline_writes_dynamic_complete_artifacts(
     )
     assert completed.returncode == 0, completed.stderr
 
-    run_dirs = list(
-        (project / "results" / "runs" / task_name).rglob("run_config.json")
-    )
+    run_dirs = list((project / "results" / "runs" / task_name).rglob("run_config.json"))
     assert len(run_dirs) == 1
     run_dir = run_dirs[0].parent
     assert is_run_complete(run_dir)
@@ -130,8 +128,6 @@ def test_primary_cli_pipeline_writes_dynamic_complete_artifacts(
     if task_name == "binary":
         assert "prob_merger_model" not in predictions.columns
     if model_name == "QF":
-        assert metrics["frozen_quantum_checksum"] == config["initialization_checksums"][
-            "quantum"
-        ]
+        assert metrics["frozen_quantum_checksum"] == config["initialization_checksums"]["quantum"]
     if model_name == "Q":
         assert metrics["runtime"]["quantum_parameters"] > 0

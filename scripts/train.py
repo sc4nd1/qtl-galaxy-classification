@@ -62,6 +62,7 @@ def select_training_subset(bank, subset_size: str, seed: int):
     from sklearn.model_selection import train_test_split
 
     from tesi_qml.data.features import FeatureBank
+    from tesi_qml.reproducibility import config_fingerprint as subset_fingerprint
 
     if subset_size == "full":
         return bank
@@ -76,7 +77,14 @@ def select_training_subset(bank, subset_size: str, seed: int):
     metadata = bank.metadata.loc[mask].reset_index(drop=True).copy()
     features = bank.features[torch.from_numpy(mask.to_numpy())]
     metadata["feature_index"] = range(len(metadata))
-    return FeatureBank(features=features, metadata=metadata, provenance=bank.provenance)
+    subset_objids = sorted(metadata["objid"].astype(str).unique())
+    provenance = {
+        **bank.provenance,
+        "training_subset_seed": int(seed),
+        "training_subset_size": len(subset_objids),
+        "training_subset_objid_sha256": subset_fingerprint(subset_objids),
+    }
+    return FeatureBank(features=features, metadata=metadata, provenance=provenance)
 
 
 def train_b3(args, root, config, dataset_config, repeat_seed, run_dir, metadata) -> None:
@@ -355,11 +363,9 @@ def main() -> None:
 
     train_bank = filter_feature_bank(FeatureBank.load(feature_root / "train"), task)
     train_bank = select_training_subset(
-        train_bank, args.subset_size, provisional_identity["sub_seeds"]["model"]
+        train_bank, args.subset_size, provisional_identity["sub_seeds"]["dataloader"]
     )
-    validation_bank = filter_feature_bank(
-        FeatureBank.load(feature_root / "validation"), task
-    )
+    validation_bank = filter_feature_bank(FeatureBank.load(feature_root / "validation"), task)
     test_bank = filter_feature_bank(FeatureBank.load(feature_root / "test"), task)
 
     model = build_model(

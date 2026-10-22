@@ -19,9 +19,7 @@ def test_colab_state_archive_round_trip_preserves_results_and_features(tmp_path:
     (project / "results" / "matrix" / "primary.json").write_text(
         '{"complete": 1}\n', encoding="utf-8"
     )
-    (project / "data" / "features" / "seed_42" / "features.pt").write_bytes(
-        b"features"
-    )
+    (project / "data" / "features" / "seed_42" / "features.pt").write_bytes(b"features")
     (project / "results" / "checkpoint.pt.part").write_bytes(b"incomplete")
 
     colab.create_state_archive(project, archive)
@@ -31,17 +29,13 @@ def test_colab_state_archive_round_trip_preserves_results_and_features(tmp_path:
     assert (restored / "results" / "matrix" / "primary.json").read_text(
         encoding="utf-8"
     ) == '{"complete": 1}\n'
-    assert (
-        restored / "data" / "features" / "seed_42" / "features.pt"
-    ).read_bytes() == b"features"
+    assert (restored / "data" / "features" / "seed_42" / "features.pt").read_bytes() == b"features"
     assert not (restored / "results" / "checkpoint.pt.part").exists()
 
 
 def test_restore_state_archive_treats_missing_first_session_as_empty(tmp_path: Path) -> None:
     """Catches first-run setup failing merely because no prior state exists."""
-    assert not colab.restore_state_archive(
-        tmp_path / "project", tmp_path / "missing.tar.gz"
-    )
+    assert not colab.restore_state_archive(tmp_path / "project", tmp_path / "missing.tar.gz")
 
 
 def test_restore_state_archive_rejects_path_traversal(tmp_path: Path) -> None:

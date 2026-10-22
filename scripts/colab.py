@@ -27,9 +27,12 @@ CODE_BUNDLE_ITEMS = (
     "configs",
     "tests",
     "notebooks",
+    "docs",
     "README.md",
+    "COLAB_GUIDE.md",
     "pyproject.toml",
     "requirements-cluster.txt",
+    "requirements-colab.txt",
 )
 DATASET_BUNDLE_ITEMS = (
     "data/source",
@@ -79,8 +82,10 @@ def _iter_state_files(root: Path):
         paths = (source,) if source.is_file() else source.rglob("*")
         for path in paths:
             relative_parts = set(path.relative_to(root).parts)
-            if path.is_file() and not (relative_parts & excluded) and not path.name.endswith(
-                ".part"
+            if (
+                path.is_file()
+                and not (relative_parts & excluded)
+                and not path.name.endswith(".part")
             ):
                 yield path
 
@@ -101,8 +106,7 @@ def create_state_archive(project_root: Path | str, archive_path: Path | str) -> 
 def _validated_state_path(member: tarfile.TarInfo) -> PurePosixPath:
     relative = PurePosixPath(member.name)
     allowed = any(
-        relative == PurePosixPath(item)
-        or relative.is_relative_to(PurePosixPath(item))
+        relative == PurePosixPath(item) or relative.is_relative_to(PurePosixPath(item))
         for item in STATE_BUNDLE_ITEMS
     )
     if (
@@ -161,7 +165,7 @@ def create_colab_bundles(
         "code": _write_tar(root, output / "colab_code.tar.gz", CODE_BUNDLE_ITEMS),
         "dataset": _write_tar(root, output / "colab_dataset.tar.gz", dataset_items),
     }
-    for name in ("colab_quickstart.ipynb", "colab_runner.ipynb"):
+    for name in ("colab_quickstart.ipynb",):
         source = root / "notebooks" / name
         if not source.is_file():
             raise FileNotFoundError(f"Notebook Colab mancante: {source}")
@@ -180,7 +184,9 @@ def _read_source_catalog(path: Path) -> pd.DataFrame:
     return catalog.set_index("objid", drop=False)
 
 
-def _scan_physical_images(physical_root: Path, labels: set[str]) -> tuple[list[dict[str, str]], int]:
+def _scan_physical_images(
+    physical_root: Path, labels: set[str]
+) -> tuple[list[dict[str, str]], int]:
     rows: list[dict[str, str]] = []
     seen: dict[str, str] = {}
     skipped_duplicates = 0
@@ -221,7 +227,9 @@ def import_physical_dataset(
         raise ValueError(f"Classi non supportate: {unsupported}")
 
     configured_source_csv = resolve_project_path(root, config["source_csv"])
-    source_csv_path = Path(source_csv).resolve() if source_csv is not None else configured_source_csv
+    source_csv_path = (
+        Path(source_csv).resolve() if source_csv is not None else configured_source_csv
+    )
     catalog = _read_source_catalog(source_csv_path)
     if source_csv is not None and source_csv_path != configured_source_csv.resolve():
         configured_source_csv.parent.mkdir(parents=True, exist_ok=True)

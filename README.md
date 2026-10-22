@@ -1,6 +1,12 @@
 # Quantum Transfer Learning per la Classificazione delle Morfologie Galattiche
 
-Repository ufficiale del progetto di tesi di laurea: **"Classificazione QTL delle morfologie galattiche"** (Università degli Studi di Torino).
+[![CI](https://github.com/michelescandone/qtl-galaxy-classification/actions/workflows/ci.yml/badge.svg)](https://github.com/michelescandone/qtl-galaxy-classification/actions/workflows/ci.yml)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![PennyLane](https://img.shields.io/badge/PennyLane-0.42-brightgreen.svg)](https://pennylane.ai/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Repository ufficiale del progetto di tesi di laurea: **"Classificazione ibrida classico-quantistica delle morfologie galattiche: confronto tra bottleneck classici e circuiti quantistici variazionali"** (Università degli Studi di Torino).
 
 Il progetto implementa una pipeline rigorosa e riproducibile per confrontare architetture classiche di Transfer Learning con **Dressed Quantum Circuits (DQC)** sviluppati in **PennyLane** e integrati con **PyTorch**, applicati alla classificazione morfologica di galassie da immagini SDSS DR17 / Galaxy Zoo.
 
@@ -8,7 +14,7 @@ Il progetto implementa una pipeline rigorosa e riproducibile per confrontare arc
 
 ## 🏛️ Struttura del Repository
 
-La repo è organizzata come **monorepo modulare**, integrando codice scientifico, protocolli sperimentali, dati di controllo e stesura finale della tesi in LaTeX:
+La repo è organizzata come **monorepo modulare**, integrando codice scientifico, protocolli sperimentali, dati di controllo e documento finale della tesi di laurea in PDF:
 
 ```text
 qtl-galaxy-classification/
@@ -23,12 +29,14 @@ qtl-galaxy-classification/
 │   ├── splits/                # Partizioni stratificate 4-fold per 10 repeat seed
 │   ├── source/                # Query CasJobs SDSS originale (GalaxyCandidates.csv)
 │   └── images/                # Cutout 320x320 (scaricabili via script)
-├── figures/                   # Figure vettoriali PDF e schemi TikZ utilizzati nella tesi
+├── figures/                   # Figure vettoriali PDF e schemi utilizzati nella tesi
 ├── heat_map/                  # Modulo XAI (Grad-CAM per interpretabilità visiva)
-├── thesis/                    # Sorgenti completi della tesi in LaTeX (template relatore UniTo)
+├── thesis/                    # Documento completo della tesi di laurea in PDF
+│   └── 2026_Tesi3___Scandone_Michele.pdf
 ├── pyproject.toml             # Configurazione del pacchetto Python ed entry points
 ├── requirements-cluster.txt   # Dipendenze con versioni bloccate per ambienti Linux/Cluster/GPU
 ├── requirements-colab.txt     # Dipendenze ottimizzate per Google Colab Pro
+├── LICENSE                    # Licenza MIT per il codice sorgente
 └── .gitignore                 # Regole per escludere checkpoint pesanti, cache e build
 ```
 
@@ -37,6 +45,40 @@ qtl-galaxy-classification/
 ## 🔬 Metodologia e Disegno Sperimentale
 
 Lo studio valuta se l'inserimento di un circuito quantistico parametrico addestrabile offra un vantaggio empirico rispetto a controparti classiche bilanciate per numero di gradi di libertà, sotto un rigoroso controllo dell'inizializzazione e delle partizioni.
+
+```mermaid
+flowchart TD
+    subgraph DataPipeline ["1. Acquisizione e Validazione Dati"]
+        A[SDSS DR17 CasJobs CSV] --> B[scripts/clean_metadata.py]
+        B --> C[data/manifests/candidates.parquet]
+        C --> D[scripts/download_images.py]
+        D --> E[data/images/ 320x320 Cutouts]
+        E --> F[scripts/validate_images.py]
+        F --> G[data/manifests/final.parquet: 5.628 campioni]
+        G --> H[scripts/make_splits.py: 4-Fold Stratified x 10 Seeds]
+    end
+
+    subgraph FeatureExtraction ["2. Transfer Learning Backbone"]
+        H --> I[ResNet-18 ImageNet1K_V1 Pre-addestrata]
+        I --> J[scripts/cache_features.py]
+        J --> K[Cache Embeddings 512D]
+    end
+
+    subgraph Models ["3. Matrice Sperimentale (160 Run)"]
+        K --> L1[B0: Baseline Lineare 512 -> C]
+        K --> L2[B1: MLP Classico 512 -> 512 -> C]
+        K --> L3[B2: Bottleneck Classico q=4,8]
+        K --> L4[QF: PennyLane DQC Pesi Quantistici Congelati]
+        K --> L5[Q: PennyLane DQC Pesi Quantistici Addestrabili]
+    end
+
+    subgraph InferenceStats ["4. Inferenza Statistica e Artefatti Tesi"]
+        L1 & L2 & L3 & L4 & L5 --> M[scripts/run_matrix.py / notebooks/colab_quickstart.ipynb]
+        M --> N[scripts/aggregate_results.py: Sign-Flip Paired & Holm-Bonferroni]
+        N --> O[scripts/generate_figures.py: Figure Vettoriali PDF]
+        O --> P[figures/results/ & thesis/2026_Tesi3___Scandone_Michele.pdf]
+    end
+```
 
 ### Task di Classificazione
 - **`binary`**: `elliptical` ($0$) vs `spiral` ($1$). I merger vengono filtrati preservando gli split.
@@ -70,14 +112,14 @@ L'inferenza statistica si basa su confronti bilaterali appaiati per seed ($n=10$
 ## ⚙️ Installazione e Setup
 
 ### Prerequisiti
-- Python 3.10 o 3.11
+- Python 3.10, 3.11 o 3.12
 - PyTorch 2.x con supporto CUDA (opzionale ma consigliato per la feature extraction)
 - PennyLane 0.42.3
 
 ### Creazione Ambiente Virtuale
 ```bash
 # Clona il repository
-git clone https://github.com/TUO-USERNAME/qtl-galaxy-classification.git
+git clone https://github.com/michelescandone/qtl-galaxy-classification.git
 cd qtl-galaxy-classification
 
 # Crea e attiva il virtual environment
@@ -91,17 +133,20 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements-cluster.txt
 
-# Installa il pacchetto locale in modalità editabile
-python -m pip install -e . --no-deps
+# Installa il pacchetto locale in modalità editabile con dipendenze dev
+python -m pip install -e ".[dev]"
 ```
 
 ### Esecuzione della Suite di Test
 ```bash
-# Esegui i test classici
+# Esegui i test classici (143 test unitari e di integrazione)
 pytest -m "not quantum" -q
 
-# Esegui i test sui circuiti PennyLane
+# Esegui i test sui circuiti PennyLane (richiede dipendenza opzionale 'quantum')
 pytest tests/quantum/test_pennylane_qnn.py -q
+
+# Esegui i test del modulo XAI Grad-CAM
+pytest heat_map/test_heatmaps.py -q
 ```
 
 ---
@@ -164,24 +209,41 @@ python scripts/aggregate_results.py --project-root .
 python scripts/generate_figures.py --project-root .
 ```
 
----
-
-## 📖 Compilazione della Tesi (LaTeX)
-
-I sorgenti completi della tesi redatta sono collocati nella directory [`thesis/`](thesis/):
-- **Documento principale**: `thesis/main.tex`
-- **Compilatore richiesto**: `pdfLaTeX`
-- **Gestione bibliografia**: `BibTeX` (stile `plain`)
-- **Evidenziazione listati**: pacchetto `minted`
-
-I capitoli sono suddivisi modularmente nella cartella `thesis/chapters/` con tabelle e grafici integrati direttamente da `figures/`.
+### 5. Esecuzione su Google Colab e Campagna Subset
+Per la riproduzione su Google Colab con accelerazione GPU e persistenza su Google Drive:
+- Consultare la guida dettagliata: [`COLAB_GUIDE.md`](COLAB_GUIDE.md).
+- Aprire il notebook unificato: [`notebooks/colab_quickstart.ipynb`](notebooks/colab_quickstart.ipynb).
+- Per la campagna secondaria sui subset (100, 300, 900 campioni, 480 run): `python scripts/colab_subsets.py --help`.
 
 ---
 
-## 📑 Riferimenti e Licenza
+## 📖 Tesi di Laurea (PDF)
 
-- **Autore**: Michele Scandone
-- **Corso di Laurea**: Dipartimento di Informatica / Fisica, Università degli Studi di Torino
-- **Data**: 2026
+Il documento completo e finale della tesi è disponibile direttamente in formato PDF:
+- **[`thesis/2026_Tesi3___Scandone_Michele.pdf`](thesis/2026_Tesi3___Scandone_Michele.pdf)**
 
-*Questo codice è rilasciato per scopi di riproducibilità scientifica e ricerca accademica.*
+Comprende tutti i 7 capitoli di testo, le figure vettoriali dei risultati, le tabelle delle metriche e le appendici metodologiche (query CasJobs SDSS DR17 e codice di inferenza statistica appaiata).
+
+---
+
+## 📑 Citazione
+
+Se utilizzi questo codice o i risultati della ricerca per i tuoi studi, puoi citare la tesi come segue:
+
+```bibtex
+@thesis{scandone2026qtl,
+  author       = {Scandone, Michele},
+  title        = {Classificazione ibrida classico-quantistica delle morfologie galattiche: confronto tra bottleneck classici e circuiti quantistici variazionali},
+  school       = {Universit{\`a} degli Studi di Torino},
+  year         = {2026},
+  type         = {Tesi di Laurea Triennale in Informatica},
+  note         = {Relatore: Prof. Luca Paolini}
+}
+```
+
+---
+
+## 📄 Licenza
+
+- Il codice sorgente del repository è rilasciato sotto licenza [MIT](LICENSE).
+- Il testo della tesi, i manifest e i dati aggregati sono rilasciati per scopi di riproducibilità scientifica e ricerca accademica under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).

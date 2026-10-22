@@ -1,68 +1,80 @@
 # Mappa dei materiali per la tesi
 
-Questa guida indica quali file usare come fonte per ciascuna parte della tesi. I
-Markdown sono bozze tecniche: prima della consegna vanno integrati con citazioni
-bibliografiche e adattati allo stile dell'ateneo.
+Corrispondenza formale tra i capitoli del documento finale di tesi ([`thesis/2026_Tesi3___Scandone_Michele.pdf`](thesis/2026_Tesi3___Scandone_Michele.pdf)) e i moduli software, file di configurazione, manifest e dati del repository.
 
-## Dataset e provenienza
+---
 
-- `dataset_creation.md`: SDSS DR17, query CasJobs, soglie Galaxy Zoo, ObjID,
-  acquisizione `320×320`, validazione e bilanciamento.
-- `data/manifests/metadata_summary.json`: evidenza numerica della pulizia del CSV.
-- `data/manifests/manifest_summary.json`: evidenza numerica del dataset finale.
-- `data/manifests/validated.parquet`: controlli, dimensioni e hash dei cutout.
-- `data/manifests/final.parquet`: 5.628 campioni effettivamente usati.
+## 1. Dataset e provenienza (Capitolo 3)
 
-Conteggi da mantenere coerenti nel testo:
+- [`docs/DATASET_CREATION.md`](docs/DATASET_CREATION.md): provenienza SDSS DR17, query CasJobs, soglie Galaxy Zoo, gestione ObjID a 19 cifre, acquisizione cutout `320×320`, validazione e bilanciamento.
+- [`data/manifests/metadata_summary.json`](data/manifests/metadata_summary.json): audit numerico della pulizia del catalogo CSV originale.
+- [`data/manifests/manifest_summary.json`](data/manifests/manifest_summary.json): composizione statistica del dataset sperimentale bilanciato.
+- [`data/manifests/validated.parquet`](data/manifests/validated.parquet): controlli di integrità, dimensioni e hash SHA-256 dei cutout.
+- [`data/manifests/final.parquet`](data/manifests/final.parquet): 5.628 campioni bilanciati impiegati negli esperimenti.
+- [`notebooks/01_dataset_audit.ipynb`](notebooks/01_dataset_audit.ipynb): notebook di audit per l'ispezione visuale e tabellare del dataset.
 
+**Conteggi ufficiali registrati:**
 ```text
-65.906 righe sorgente
+65.906 righe sorgente CasJobs
 65.829 candidati puliti
-6.571 cutout validi 320×320
-5.628 campioni finali
-1.876 campioni per classe
+ 6.571 cutout validi 320×320
+ 5.628 campioni bilanciati finali (1.876 per classe)
 ```
 
-## Partizionamento e protocollo
+---
 
-- `dataset_methodology_k4.md`: quattro fold, 10 repeat seed, task binario e
-  triclasse, protocollo primario e inferenza statistica.
-- `data/splits/all.parquet`: 225.120 assegnazioni, corrispondenti a 10 seed e 4
-  iterazioni; la matrice primaria usa soltanto `iteration=1`.
-- `configs/dataset.yaml`: soglie, seed e definizione dei task.
+## 2. Partizionamento e protocollo sperimentale (Capitoli 3 e 4)
 
-## Disegno sperimentale
+- [`docs/qtl-galaxy-classification-design.md`](docs/qtl-galaxy-classification-design.md): partizionamento a 4 fold stratificati per 10 repeat seed, definizione dei task `binary` e `three_class`, isolamento del test set e metodologia inferenziale appaiata.
+- [`data/splits/all.parquet`](data/splits/all.parquet): 225.120 assegnazioni (5.628 immagini × 10 seed × 4 fold); la matrice primaria adotta `iteration=1`.
+- [`configs/dataset.yaml`](configs/dataset.yaml): parametri numerici, soglie di probabilità e definizioni formali dei task.
 
-- `2026-08-27-qtl-galaxy-classification-design.md`: razionale completo delle
-  baseline e della matrice da 160 run.
-- `configs/training.yaml`: iperparametri bloccati e otto configurazioni primarie.
-- `src/tesi_qml/experiments.py` e `src/tesi_qml/matrix.py`: identità dei run e
-  materializzazione della matrice.
+---
 
-## Implementazione PennyLane
+## 3. Modelli e disegno sperimentale (Capitolo 4)
 
-- `docs/PENNYLANE_IMPLEMENTATIONS.md`: varianti circuitali e scelte implementative.
-- `src/tesi_qml/models/circuit_spec.py`: specifica del circuito.
-- `src/tesi_qml/models/pennylane_qnn.py`: implementazione Q e QF.
-- `src/tesi_qml/models/classical.py`: baseline B0, B1 e B2.
-- `scripts/train.py`: flusso di addestramento e valutazione.
+- [`docs/qtl-galaxy-classification-design.md`](docs/qtl-galaxy-classification-design.md): razionale scientifico del confronto controllato tra baseline classiche (B0, B1, B2) e architetture quantistiche DQC (QF, Q).
+- [`configs/training.yaml`](configs/training.yaml): iperparametri di addestramento (ottimizzatore AdamW, learning rate, early stopping, regolarizzazione) per le 8 configurazioni primarie.
+- [`src/tesi_qml/models/classical.py`](src/tesi_qml/models/classical.py): implementazione di LinearHead (B0), MLPHead (B1) e CapacityMatchedHead (B2-4, B2-8).
+- [`src/tesi_qml/models/pennylane_qnn.py`](src/tesi_qml/models/pennylane_qnn.py): implementazione di PennylaneAngleQNN (QF, Q), PennylaneReuploadingQNN (PL_REUP) e PennylaneAmplitudeQNN (PL_AMP).
+- [`src/tesi_qml/models/circuit_spec.py`](src/tesi_qml/models/circuit_spec.py): specifica formale del circuito quantistico variazionale.
+- [`scripts/train.py`](scripts/train.py): pipeline di addestramento, salvataggio checkpoint atomico e calcolo metriche.
 
-## Risultati, statistiche e figure
+---
 
-- `docs/OUTPUT_SCHEMA.md`: formato degli artefatti prodotti da ogni run.
-- `scripts/aggregate_results.py`: confronti appaiati, intervalli e correzione Holm.
-- `scripts/generate_figures.py`: figure finali.
-- `notebooks/02_experiment_analysis.ipynb`: ispezione dei risultati aggregati.
-- `notebooks/03_thesis_figures.ipynb`: esportazione di grafici per la tesi.
+## 4. Matrice primaria e campagna subset (Capitoli 5 e 6)
 
-## Riproducibilità e limiti
+- [`src/tesi_qml/matrix.py`](src/tesi_qml/matrix.py) e [`scripts/run_matrix.py`](scripts/run_matrix.py): runner locale riprendibile per i 160 esperimenti della matrice primaria full.
+- [`scripts/colab_session.py`](scripts/colab_session.py): orchestratore per l'esecuzione della matrice full su Google Colab con persistenza atomica su Google Drive.
+- [`scripts/colab_subsets.py`](scripts/colab_subsets.py): orchestratore della campagna secondaria sui subset (100, 300, 900 campioni, 480 run complessivi).
+- [`notebooks/colab_quickstart.ipynb`](notebooks/colab_quickstart.ipynb): notebook Colab unificato per il ciclo operativo completo (matrice full, subset e aggregazione finale).
+- [`COLAB_GUIDE.md`](COLAB_GUIDE.md): guida operativa per la configurazione e ripresa delle sessioni su Google Colab.
 
-- `src/tesi_qml/reproducibility.py`: seed, fingerprint e ambiente software.
-- `data/manifests/rejected.parquet`: record esclusi durante la pulizia.
-- `data/manifests/manifest_exclusions.parquet`: immagini valide tenute come
-  riserva per il bilanciamento.
-- `COLAB_GUIDE.md`: procedura operativa e ripresa delle sessioni.
+---
 
-Nel capitolo dei limiti va dichiarato che il CSV esportato non conserva le colonne
-`clean`, `type` e `g`: tali filtri sono documentati dalla query CasJobs, ma non
-sono riauditabili usando soltanto il CSV locale.
+## 5. Risultati, inferenza statistica e figure (Capitoli 5 e 6)
+
+- [`docs/OUTPUT_SCHEMA.md`](docs/OUTPUT_SCHEMA.md): specifica formale degli artefatti prodotti da ogni singolo run e delle tabelle aggregate.
+- [`scripts/aggregate_results.py`](scripts/aggregate_results.py): calcolo delle metriche aggregate, intervalli di confidenza bootstrap BCa al 95%, permutation test con sign-flip bilaterale, correzione Holm-Bonferroni e Cohen's $d_z$.
+- [`scripts/generate_figures.py`](scripts/generate_figures.py): generazione deterministica di tutte le figure vettoriali in formato PDF.
+- [`figures/`](figures/): directory contenente le figure vettoriali prodotte e incluse nel testo della tesi.
+- [`notebooks/02_experiment_analysis.ipynb`](notebooks/02_experiment_analysis.ipynb): analisi quantitativa e tabelle dei risultati aggregati.
+- [`notebooks/03_thesis_figures.ipynb`](notebooks/03_thesis_figures.ipynb): ispezione ed esportazione dei grafici della tesi.
+
+---
+
+## 6. Interpretabilità Visiva XAI (Capitolo 6)
+
+- [`heat_map/gradcam_analysis.py`](heat_map/gradcam_analysis.py): modulo per l'estrazione e sovrapposizione di mappe Grad-CAM su layer4 di ResNet-18 per modelli B2, QF e Q.
+- [`heat_map/07_colab_gradcam.ipynb`](heat_map/07_colab_gradcam.ipynb): notebook autonomo per l'esecuzione del protocollo Grad-CAM in ambiente Colab/GPU.
+- [`heat_map/test_heatmaps.py`](heat_map/test_heatmaps.py): test suite per la validazione delle ricostruzioni di probabilità e mappe di salienza.
+- [`heat_map/README.md`](heat_map/README.md): documentazione metodologica del modulo Grad-CAM.
+
+---
+
+## 7. Tracciabilità e limiti metodologici (Capitolo 7)
+
+- [`src/tesi_qml/reproducibility.py`](src/tesi_qml/reproducibility.py): determinismo, gestione seed, fingerprint di configurazione e registrazione ambiente software.
+- [`data/manifests/rejected.parquet`](data/manifests/rejected.parquet): record esclusi durante la fase di pulizia iniziale.
+- [`data/manifests/manifest_exclusions.parquet`](data/manifests/manifest_exclusions.parquet): immagini valide conservate come riserva durante il bilanciamento.
+- **Nota sui filtri fotometrici SDSS DR17**: il file CSV esportato da CasJobs non conserva le colonne `clean`, `type` e `g`. I relativi criteri di selezione sono definiti a monte nella query CasJobs ufficiale e garantiti dall'estrazione originale.

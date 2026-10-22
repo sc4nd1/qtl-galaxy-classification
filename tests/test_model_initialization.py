@@ -66,7 +66,8 @@ def test_paired_initialization_changes_with_scientific_seed_or_task_shape() -> N
     binary_other_seed = PairedInitialization.create(16, 4, 2, 2, 3, 4, 0.05)
     three_class = PairedInitialization.create(16, 4, 3, 2, 1, 2, 0.05)
 
-    assert binary.checksums()["shared_projection"] != binary_other_seed.checksums()[
-        "shared_projection"
-    ]
+    assert (
+        binary.checksums()["shared_projection"]
+        != binary_other_seed.checksums()["shared_projection"]
+    )
     assert binary.checksums()["shared_head"] != three_class.checksums()["shared_head"]

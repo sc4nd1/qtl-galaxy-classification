@@ -12,5 +12,4 @@ bilanciate: 1.876 per classe e 469 per classe in ciascuno dei quattro fold.
 
 Le immagini e le feature sono rigenerabili; manifest e split sono gli artefatti che definiscono il campione sperimentale. Non costruire dataset enumerando le cartelle.
 
-Le immagini legacy a 256×256 sono archiviate separatamente in
-`../data_legacy_256_20260827/images` e non appartengono al dataset attivo.
+I precedenti cutout preliminari a 256×256 sono stati completamente dismessi e non fanno parte del dataset del progetto. L'unico dataset attivo è costituito dai 6.571 cutout a risoluzione 320×320 pixel.

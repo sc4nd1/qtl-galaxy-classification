@@ -78,9 +78,10 @@ def main() -> None:
         raise ValueError("Ogni run deve avere experiment_fingerprint in run_config.json")
     dataset_path = root / args.dataset_config
     dataset_config = load_yaml(dataset_path)
+    primary_frame = frame.loc[frame["subset_size"].astype(str) == "full"].copy()
     if not args.allow_incomplete:
         validate_primary_result_matrix(
-            frame, repeat_seeds=dataset_config["splits"]["repeat_seeds"]
+            primary_frame, repeat_seeds=dataset_config["splits"]["repeat_seeds"]
         )
     group_columns = (
         "task",
@@ -127,7 +128,7 @@ def main() -> None:
         frame.loc[frame["task"] == "three_class", merger_columns],
     )
     if not args.allow_incomplete:
-        primary = primary_hypothesis_tests(frame, seed=dataset_config["project_seed"])
+        primary = primary_hypothesis_tests(primary_frame, seed=dataset_config["project_seed"])
         atomic_parquet(output / "primary_hypotheses.parquet", primary)
         atomic_json(output / "primary_hypotheses.json", primary.to_dict("records"))
     print(summary.to_string(index=False))

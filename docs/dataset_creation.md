@@ -1,8 +1,8 @@
 # Creazione del dataset SDSS DR17
 
 Questo documento descrive il dataset rigenerato il 27 agosto 2026 e gli artefatti
-effettivamente presenti in `tesi_finale/data`. I conteggi riportati derivano dai
-manifest generati dalla pipeline, non dal semplice conteggio dei file nelle cartelle.
+presenti nella directory `data/`. I conteggi riportati derivano formalmente dai
+manifest generati dalla pipeline di validazione.
 
 ## 1. Origine e criteri scientifici
 
@@ -145,6 +145,4 @@ Gli artefatti che definiscono il dataset sono:
 Gli esperimenti devono leggere `final.parquet` e `splits/all.parquet`; non devono
 costruire il campione enumerando le directory.
 
-Le 5.212 immagini della pipeline precedente, tutte 256×256, sono state separate
-in `tesi_finale/data_legacy_256_20260827/images` e non fanno parte del dataset
-attivo.
+I precedenti 5.212 cutout preliminari a 256×256 della fase iniziale sono stati completamente dismessi e non fanno parte del dataset del progetto. L'unico dataset attivo è costituito dai 6.571 cutout a risoluzione 320×320 pixel (da cui deriva formalmente il campione sperimentale bilanciato da 5.628 immagini).

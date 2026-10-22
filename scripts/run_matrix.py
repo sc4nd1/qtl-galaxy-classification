@@ -94,9 +94,7 @@ def main() -> None:
         "Esegue la matrice primaria binaria/triclasse", default_config="configs/training.yaml"
     )
     parser.add_argument("--dataset-config", type=Path, default=Path("configs/dataset.yaml"))
-    parser.add_argument(
-        "--matrix-path", type=Path, default=Path("results/matrix/primary.json")
-    )
+    parser.add_argument("--matrix-path", type=Path, default=Path("results/matrix/primary.json"))
     parser.add_argument("--max-runs", type=int, default=1)
     parser.add_argument("--next", action="store_true", help="Esegue al massimo il prossimo run")
     parser.add_argument("--report-only", action="store_true")
@@ -114,7 +112,11 @@ def main() -> None:
     training_path = args.config if args.config.is_absolute() else root / args.config
 
     if args.dry_run:
-        print(json.dumps({"dry_run": True, "total": len(specs), "unique": len({s.run_id for s in specs})}))
+        print(
+            json.dumps(
+                {"dry_run": True, "total": len(specs), "unique": len({s.run_id for s in specs})}
+            )
+        )
         for spec in specs:
             command = build_train_command(
                 sys.executable,
@@ -138,9 +140,7 @@ def main() -> None:
         return
 
     limit = 1 if args.next else args.max_runs
-    selected = [row for row in state["runs"] if row["status"] in {"pending", "failed"}][
-        :limit
-    ]
+    selected = [row for row in state["runs"] if row["status"] in {"pending", "failed"}][:limit]
     for row in selected:
         spec = _spec_from_row(row)
         row["status"] = "running"

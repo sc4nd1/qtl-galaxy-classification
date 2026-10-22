@@ -49,9 +49,7 @@ def required_run_artifacts(run_dir: Path | str) -> tuple[Path, ...]:
     )
 
 
-def is_run_complete(
-    run_dir: Path | str, *, expected_config_fingerprint: str | None = None
-) -> bool:
+def is_run_complete(run_dir: Path | str, *, expected_config_fingerprint: str | None = None) -> bool:
     artifacts = required_run_artifacts(run_dir)
     if not all(path.is_file() for path in artifacts):
         return False

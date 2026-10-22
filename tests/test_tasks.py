@@ -92,9 +92,10 @@ def test_binary_split_is_a_nested_filter_of_three_class_split() -> None:
     three_class = filter_task_frame(source, get_task("three_class"))
 
     expected = three_class.loc[three_class["label"].isin(["elliptical", "spiral"])]
-    assert binary.set_index("objid")["split"].to_dict() == expected.set_index("objid")[
-        "split"
-    ].to_dict()
+    assert (
+        binary.set_index("objid")["split"].to_dict()
+        == expected.set_index("objid")["split"].to_dict()
+    )
     assert binary.set_index("objid")["class_index"].to_dict() == {"e": 0, "s": 1}
 
 
